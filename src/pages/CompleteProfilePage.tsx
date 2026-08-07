@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 export default function CompleteProfilePage() {
     
-    const [firstName, setFirstName] = useState("");
+const [firstName, setFirstName] = useState("");
 const [lastName, setLastName] = useState("");
+const [gender, setGender] = useState("");
 const [email, setEmail] = useState("");
 const [phone, setPhone] = useState("");
 const [address, setAddress] = useState("");
@@ -41,6 +42,7 @@ const handleSave = async () => {
       id: user.id,
       first_name: firstName,
       last_name: lastName,
+      gender: gender,
       phone: phone,
       address: address,
       city: city,
@@ -124,6 +126,44 @@ const handleSave = async () => {
   className="w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-red-500"
 />
   </div>
+
+  <div className="mt-6">
+  <label className="block text-sm font-medium mb-2">
+    Gender
+  </label>
+
+  <div className="flex gap-6">
+    <label className="flex items-center gap-2">
+      <input
+        type="radio"
+        value="Male"
+        checked={gender === "Male"}
+        onChange={(e) => setGender(e.target.value)}
+      />
+      Male
+    </label>
+
+    <label className="flex items-center gap-2">
+      <input
+        type="radio"
+        value="Female"
+        checked={gender === "Female"}
+        onChange={(e) => setGender(e.target.value)}
+      />
+      Female
+    </label>
+
+    <label className="flex items-center gap-2">
+      <input
+        type="radio"
+        value="Prefer not to say"
+        checked={gender === "Prefer not to say"}
+        onChange={(e) => setGender(e.target.value)}
+      />
+      Prefer not to say
+    </label>
+  </div>
+</div>
 
   <div className="md:col-span-2">
     <label className="block text-sm font-medium mb-2">

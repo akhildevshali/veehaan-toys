@@ -13,6 +13,7 @@ export function Navbar() {
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isSignupOpen, setIsSignupOpen] = useState(false)
   const [firstName, setFirstName] = useState("");
+  const navigate = useNavigate();
   useEffect(() => {
   const getProfile = async () => {
     const {
@@ -36,7 +37,6 @@ export function Navbar() {
 }, []);
 
   const location = useLocation()
-  const navigate = useNavigate()
 
   useEffect(() => {
     const refresh = async () => {
@@ -135,13 +135,19 @@ export function Navbar() {
       const Icon = item.icon
 
       return (
-        <button
-          key={item.label}
-          className="w-full flex items-center gap-3 px-4 py-2 text-left
-hover:bg-orange-50 hover:text-orange-600
-transition-all duration-200 border-l-4 border-transparent
-hover:border-orange-500"
-        >
+<button
+  key={item.label}
+  onClick={() => {
+    if (item.label === "My Profile") {
+      navigate("/my-profile");
+      setShowAccountMenu(false);
+    }
+  }}
+  className="w-full flex items-center gap-3 px-4 py-2 text-left
+  hover:bg-orange-50 hover:text-orange-600
+  transition-all duration-200 border-l-4 border-transparent
+  hover:border-orange-500"
+>
         <div
   className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
     item.label === "My Profile"
