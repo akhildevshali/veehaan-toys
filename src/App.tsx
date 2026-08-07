@@ -1,0 +1,83 @@
+import { Routes, Route, Link } from 'react-router-dom'
+import { Settings } from 'lucide-react'
+import { Navbar } from './components/Navbar'
+import { Chatbot } from './components/Chatbot'
+import { HomePage } from './pages/HomePage'
+import { ShopPage } from './pages/ShopPage'
+import { ProductDetailPage } from './pages/ProductDetailPage'
+import { CartPage } from './pages/CartPage'
+import { CheckoutPage } from './pages/CheckoutPage'
+import { AdminPage } from './pages/AdminPage'
+import { AboutPage } from './pages/AboutPage'
+import { ContactPage } from './pages/ContactPage'
+import CompleteProfilePage from "./pages/CompleteProfilePage";
+
+export default function App() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Navbar />
+      <main className="flex-1">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/shop" element={<ShopPage />} />
+          <Route path="/product/:slug" element={<ProductDetailPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route
+  path="/complete-profile"
+  element={<CompleteProfilePage />}
+/>
+        </Routes>
+      </main>
+      <footer className="bg-gray-900 text-gray-400 py-12">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center text-2xl">🧸</div>
+                <span className="text-xl font-bold"><span className="text-red-500">Veehaan</span><span className="text-orange-400">Toys</span></span>
+              </div>
+              <p className="text-sm">Quality toys for happy kids. Shop with confidence.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-white mb-3">Quick Links</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link to="/" className="hover:text-orange-400">Home</Link></li>
+                <li><Link to="/shop" className="hover:text-orange-400">Shop</Link></li>
+                <li><Link to="/about" className="hover:text-orange-400">About Us</Link></li>
+                <li><Link to="/contact" className="hover:text-orange-400">Contact</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-white mb-3">Customer Service</h4>
+              <ul className="space-y-2 text-sm">
+                <li>Free Shipping over ₹999</li>
+                <li>7-Day Returns</li>
+                <li>24/7 Support</li>
+                <li>Safe & Secure</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-white mb-3">Contact Us</h4>
+              <ul className="space-y-2 text-sm">
+                <li>+91 99004 85693</li>
+                <li>soyal@veehaandigitech.com</li>
+                <li>Bengaluru, India</li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-center sm:text-left">© {new Date().getFullYear()} VeehaanToys. All rights reserved.</p>
+            <Link to="/admin" className="flex items-center gap-2 text-sm text-gray-500 hover:text-orange-400 transition-colors">
+              <Settings size={16} /> Admin
+            </Link>
+          </div>
+        </div>
+      </footer>
+      <Chatbot />
+    </div>
+  )
+}
