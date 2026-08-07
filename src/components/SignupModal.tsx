@@ -73,10 +73,14 @@ const handleSignup = async () => {
 
   if (!valid) return;
 
-const { error } = await signUp(email, password);
+  console.log("Signup started", email);
+const result = await signUp(email, password);
+console.log("USER:", result.data.user);
+console.log("SESSION:", result.data.session);
+console.log("FULL RESULT:", result);
 
-if (error) {
-  alert(error.message);
+if (result.error) {
+  alert(result.error.message);
   return;
 }
 

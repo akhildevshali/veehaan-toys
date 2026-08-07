@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { fetchCart } from '../lib/cart'
 import { LoginModal } from './LoginModal'
 import { SignupModal } from './SignupModal'
+import { supabase } from "../lib/supabase";
 
 export function Navbar() {
   const [cartCount, setCartCount] = useState(0)
@@ -11,6 +12,29 @@ export function Navbar() {
   const [showAccountMenu, setShowAccountMenu] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isSignupOpen, setIsSignupOpen] = useState(false)
+  const [firstName, setFirstName] = useState("");
+  useEffect(() => {
+  const getProfile = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("profiles")
+      .select("first_name")
+      .eq("id", user.id)
+      .single();
+
+    if (data) {
+      setFirstName(data.first_name);
+    }
+  };
+
+  getProfile();
+}, []);
+
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -77,14 +101,16 @@ export function Navbar() {
   </div>
 
   <div className="text-left">
-    <p className="text-xs text-gray-500">
-      Hello
+    <p className="text-base font-bold text-gray-900">
+      {firstName ? firstName : "Hello"}
     </p>
 
 <div className="flex items-center gap-1">
+  {!firstName && (
   <p className="text-sm font-semibold">
     Login
   </p>
+)}
 
   <div
     className={`transition-transform duration-200 ${

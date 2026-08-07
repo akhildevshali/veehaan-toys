@@ -25,6 +25,41 @@ useEffect(() => {
   loadUser();
 }, []);
 
+const handleSave = async () => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    alert("User not found");
+    return;
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .upsert({
+      id: user.id,
+      first_name: firstName,
+      last_name: lastName,
+      phone: phone,
+      address: address,
+      city: city,
+      state: state,
+      pincode: pincode,
+    });
+
+  if (error) {
+    console.error(error);
+    alert(error.message);
+    return;
+  }
+
+  alert("Profile Saved Successfully");
+
+  window.location.href = "/";
+};
+
+
   return (
     <div className="bg-gray-100 px-6 py-6">
 
@@ -81,8 +116,10 @@ useEffect(() => {
     <label className="block text-sm font-medium mb-2">
       Phone Number *
     </label>
-    <input
+<input
   type="tel"
+  value={phone}
+  onChange={(e) => setPhone(e.target.value)}
   placeholder="Enter 10 digit mobile number"
   className="w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-red-500"
 />
@@ -92,10 +129,12 @@ useEffect(() => {
     <label className="block text-sm font-medium mb-2">
       Address
     </label>
-    <textarea
+<textarea
   rows={2}
+  value={address}
+  onChange={(e) => setAddress(e.target.value)}
   placeholder="Enter address"
-  className="w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-red-500 resize-none"
+  className="w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-red-500"
 />
   </div>
 
@@ -105,6 +144,8 @@ useEffect(() => {
     </label>
     <input
   type="text"
+  value={city}
+onChange={(e) => setCity(e.target.value)}
   placeholder="City"
   className="w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-red-500"
 />
@@ -116,6 +157,8 @@ useEffect(() => {
     </label>
     <input
   type="text"
+  value={state}
+onChange={(e) => setState(e.target.value)}
   placeholder="State"
   className="w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-red-500"
 />
@@ -127,11 +170,14 @@ useEffect(() => {
     </label>
     <input
   type="text"
+  value={pincode}
+onChange={(e) => setPincode(e.target.value)}
   placeholder="Pincode"
   className="w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-red-500"
 />
 <div className="md:col-span-2 flex justify-end mt-6">
   <button
+  onClick={handleSave}
     className="bg-red-500 hover:bg-red-600 text-white font-semibold px-8 py-3 rounded-xl transition"
   >
     Save Profile
