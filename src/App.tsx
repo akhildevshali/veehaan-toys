@@ -12,6 +12,8 @@ import { AboutPage } from './pages/AboutPage'
 import { ContactPage } from './pages/ContactPage'
 import CompleteProfilePage from "./pages/CompleteProfilePage";
 import MyProfilePage from "./pages/MyProfilePage";
+import SavedAddressesPage from "./pages/SavedAddressesPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
@@ -27,13 +29,28 @@ export default function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/admin" element={<AdminPage />} />
-          <Route
-  path="/complete-profile"
-  element={<CompleteProfilePage />}
+
+<Route
+  path="/complete-profile"  element={    <ProtectedRoute>
+      <CompleteProfilePage />
+    </ProtectedRoute>
+  }
 />
 <Route
   path="/my-profile"
-  element={<MyProfilePage />}
+  element={
+    <ProtectedRoute>
+      <MyProfilePage />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/saved-addresses"
+  element={
+    <ProtectedRoute>
+      <SavedAddressesPage />
+    </ProtectedRoute>
+  }
 />
         </Routes>
       </main>

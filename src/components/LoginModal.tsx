@@ -49,8 +49,6 @@ if (error) {
   return;
 }
 
-alert("Login Successful 🎉");
-
 onClose();
 }
 

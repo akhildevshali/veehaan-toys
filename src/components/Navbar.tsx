@@ -14,13 +14,31 @@ export function Navbar() {
   const [isSignupOpen, setIsSignupOpen] = useState(false)
   const [firstName, setFirstName] = useState("");
   const navigate = useNavigate();
+
+const handleLogout = async () => {
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    console.error("Logout failed:", error.message);
+    return;
+  }
+
+  setFirstName("");
+  setShowAccountMenu(false);
+
+  navigate("/", { replace: true });
+};
+
   useEffect(() => {
   const getProfile = async () => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) return;
+    if (!user) {
+      setFirstName("");
+      return;
+    }
 
     const { data } = await supabase
       .from("profiles")
@@ -28,13 +46,30 @@ export function Navbar() {
       .eq("id", user.id)
       .single();
 
-    if (data) {
-      setFirstName(data.first_name);
-    }
+    setFirstName(data?.first_name || "");
   };
 
+  // Initial load
   getProfile();
-}, []);
+
+  // Listen for login/logout
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((event) => {
+    if (event === "SIGNED_OUT") {
+      setFirstName("");
+      navigate("/", { replace: true });
+    }
+
+    if (event === "SIGNED_IN") {
+      getProfile();
+    }
+  });
+
+  return () => {
+    subscription.unsubscribe();
+  };
+}, [navigate]);
 
   const location = useLocation()
 
@@ -51,15 +86,15 @@ export function Navbar() {
   const isActive = (path: string) =>
     location.pathname === path ? 'text-red-500 font-semibold' : 'text-gray-700 hover:text-red-500 font-medium'
   const accountMenu = [
-  { icon: User, label: "My Profile" },
-  { icon: Package, label: "Orders" },
-  { icon: Ticket, label: "Coupons" },
-  { icon: CreditCard, label: "Saved Cards & Wallet" },
-  { icon: MapPin, label: "Saved Addresses" },
-  { icon: Heart, label: "Wishlist" },
-  { icon: Bell, label: "Notifications" },
+  { icon: User, label: "My Profile", path: "/my-profile" },
+  { icon: Package, label: "Orders", path: "/orders" },
+  { icon: Ticket, label: "Coupons", path: "/coupons" },
+  { icon: CreditCard, label: "Saved Cards & Wallet", path: "/wallet" },
+  { icon: MapPin, label: "Saved Addresses", path: "/saved-addresses" },
+  { icon: Heart, label: "Wishlist", path: "/wishlist" },
+  { icon: Bell, label: "Notifications", path: "/notifications" },
   { icon: LogOut, label: "Logout" }
-]
+];
 
   return (
     <nav className="sticky top-0 z-50 bg-white shadow-sm">
@@ -93,7 +128,13 @@ export function Navbar() {
   onMouseLeave={() => setShowAccountMenu(false)}
 >
   <button
-    onClick={() => setIsLoginOpen(true)}
+    onClick={() => {
+  if (firstName) {
+    setShowAccountMenu((prev) => !prev);
+  } else {
+    setIsLoginOpen(true);
+  }
+}}
     className="flex items-center gap-2 hover:text-red-500 transition-colors"
 >
   <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-orange-100 transition-colors">
@@ -137,12 +178,19 @@ export function Navbar() {
       return (
 <button
   key={item.label}
+
   onClick={() => {
-    if (item.label === "My Profile") {
-      navigate("/my-profile");
-      setShowAccountMenu(false);
-    }
-  }}
+  if (item.label === "Logout") {
+    handleLogout();
+    return;
+  }
+
+  if (item.path) {
+    navigate(item.path);
+  }
+
+  setShowAccountMenu(false);
+}}
   className="w-full flex items-center gap-3 px-4 py-2 text-left
   hover:bg-orange-50 hover:text-orange-600
   transition-all duration-200 border-l-4 border-transparent
