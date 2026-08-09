@@ -13,6 +13,7 @@ interface ProductFormData {
   specifications: string[]
   price: string
   price_usd: string
+  mrp: string
   image_url: string
   additional_images: string[]
   video_url: string
@@ -24,7 +25,7 @@ interface ProductFormData {
 
 const emptyProduct: ProductFormData = {
   sku: '', name: '', slug: '', description: '', specifications: ['', '', '', '', '', ''],
-  price: '', price_usd: '', image_url: '', additional_images: [], video_url: '',
+  price: '', price_usd: '', mrp: "", image_url: '', additional_images: [], video_url: '',
   category_id: '', stock_quantity: '', in_stock: true, featured: false,
 }
 
@@ -188,6 +189,7 @@ const [productsPerPage, setProductsPerPage] = useState(12)
       description: product.description,
       specifications: specs.slice(0, NUM_SPECS),
       price: String(product.price),
+      mrp: product.mrp != null ? String(product.mrp) : "",
       price_usd: product.price_usd != null ? String(product.price_usd) : '',
       image_url: product.image_url,
       additional_images: product.additional_images || [],
@@ -302,6 +304,12 @@ const [productsPerPage, setProductsPerPage] = useState(12)
     if (!name) { setError('Product name is required.'); return }
 
     const price = parseFloat(formData.price)
+    const mrp = formData.mrp.trim() ? parseFloat(formData.mrp) : null
+
+if (mrp !== null && (isNaN(mrp) || mrp < 0)) {
+  setError('Please enter a valid MRP.')
+  return
+}
     if (isNaN(price) || price < 0) { setError('Please enter a valid price in Rupees.'); return }
 
     const priceUsd = formData.price_usd.trim() ? parseFloat(formData.price_usd) : null
@@ -323,6 +331,7 @@ const [productsPerPage, setProductsPerPage] = useState(12)
       short_description: specs.length > 0 ? specs.slice(0, 3).join(' • ') : (formData.description.trim().slice(0, 120) || name),
       specifications: specs,
       price,
+      mrp: mrp !== null && !isNaN(mrp) ? mrp : null,
       price_usd: priceUsd !== null && !isNaN(priceUsd) ? priceUsd : null,
       image_url: formData.image_url || '',
       additional_images: formData.additional_images,
@@ -401,7 +410,7 @@ const [productsPerPage, setProductsPerPage] = useState(12)
         spec_5: 'Battery: Not required',
         spec_6: 'Safety: BPA-free',
         price_inr: 499,
-        price_usd: 6.99,
+        mrp: 0,
         image_url: 'https://images.pexels.com/photos/...',
         category: 'Soft Toys',
         stock_quantity: 50,
@@ -461,10 +470,23 @@ const [productsPerPage, setProductsPerPage] = useState(12)
         const name = String(row['name'] ?? '').trim()
         const priceRaw = row['price_inr'] ?? row['price'] ?? row['price_inr (₹)']
         const price = typeof priceRaw === 'number' ? priceRaw : parseFloat(String(priceRaw ?? ''))
+        const mrpRaw =
+  row['mrp'] ??
+  row['MRP'] ??
+  row['mrp (₹)']
+
+const mrp =
+  mrpRaw === undefined || mrpRaw === null || String(mrpRaw).trim() === ''
+    ? null
+    : parseFloat(String(mrpRaw))
         if (!sku) { errors.push(`Row ${rowNum}: Missing SKU (required).`); return }
         if (!name) { errors.push(`Row ${rowNum}: Missing product name.`); return }
         if (isNaN(price) || price < 0) { errors.push(`Row ${rowNum}: Invalid Rupee price for "${name}".`); return }
         validRows.push(row)
+        if (mrp !== null && (isNaN(mrp) || mrp < 0)) {
+  errors.push(`Row ${rowNum}: Invalid MRP for "${name}".`)
+  return
+}
       })
       if (validRows.length === 0) {
         setUploadResult({ success: 0, updated: 0, created: 0, errors })
@@ -506,6 +528,15 @@ const [productsPerPage, setProductsPerPage] = useState(12)
         const name = String(row['name']).trim()
         const priceRaw = row['price_inr'] ?? row['price'] ?? row['price_inr (₹)']
         const price = typeof priceRaw === 'number' ? priceRaw : parseFloat(String(priceRaw))
+        const mrpRaw =
+  row['mrp'] ??
+  row['MRP'] ??
+  row['mrp (₹)']
+
+const mrp =
+  mrpRaw == null || String(mrpRaw).trim() === ''
+    ? null
+    : parseFloat(String(mrpRaw))
         const usdRaw = row['price_usd'] ?? row['price_usd ($)']
         const priceUsd = usdRaw != null && usdRaw !== '' ? (typeof usdRaw === 'number' ? usdRaw : parseFloat(String(usdRaw))) : null
         const catName = String(row['category'] ?? '').trim()
@@ -524,6 +555,7 @@ const [productsPerPage, setProductsPerPage] = useState(12)
           short_description: specs.length > 0 ? specs.slice(0, 3).join(' • ') : (desc.slice(0, 120) || name),
           specifications: specs,
           price,
+          mrp: mrp,
           price_usd: priceUsd !== null && !isNaN(priceUsd) ? priceUsd : null,
           image_url: String(row['image_url'] ?? '').trim(),
           additional_images: [] as string[],
@@ -2331,9 +2363,9 @@ outline-none
                     className="w-full px-4 py-3 rounded-xl border-2 border-orange-200 bg-orange-50 focus:border-orange-500 focus:outline-none" placeholder="499.00" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Price - Dollars ($)</label>
-                  <input type="number" step="0.01" min="0" value={formData.price_usd} onChange={(e) => setFormData({ ...formData, price_usd: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-green-200 bg-green-50 focus:border-green-500 focus:outline-none" placeholder="6.99" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">MRP (₹)</label>
+                  <input type="number" step="0.01" min="0" value={formData.mrp} onChange={(e) => setFormData({ ...formData, mrp: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-green-200 bg-green-50 focus:border-green-500 focus:outline-none" placeholder="0" />
                 </div>
               </div>
               <div>

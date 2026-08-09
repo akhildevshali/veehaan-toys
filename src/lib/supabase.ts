@@ -20,6 +20,7 @@ export interface Product {
   short_description: string
   specifications: string[]
   price: number
+  mrp: number | null
   price_usd: number | null
   image_url: string
   additional_images: string[]
