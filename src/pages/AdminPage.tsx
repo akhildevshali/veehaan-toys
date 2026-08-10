@@ -1377,23 +1377,25 @@ const toggleShopCategoryActive = async (category: ShopCategory) => {
             </button>
           </div>
         )}
+
+        {tab === 'products' && filteredProducts.length > 0 && (
+          <div className="pt-3 flex items-center gap-2">
+            <button onClick={toggleSelectAll} className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800">
+              {selectedIds.size === filteredProducts.length && filteredProducts.length > 0 ? <CheckSquare size={18} className="text-red-500" /> : <Square size={18} />}
+              {selectedIds.size === filteredProducts.length && filteredProducts.length > 0 ? 'Deselect All' : 'Select All'}
+            </button>
+            {selectedIds.size > 0 && <span className="text-xs text-gray-400">{selectedIds.size} selected</span>}
+          </div>
+        )}
       </div>
 
       {tab === 'products' && (
         <div>
-          {filteredProducts.length === 0 ? (
+          {filteredProducts.length === 0 && (
             <div className="text-center py-16 text-gray-400">
               <Package size={48} className="mx-auto mb-3 text-gray-300" />
               <p className="text-lg">No products found.</p>
               <button onClick={openAddForm} className="mt-4 text-red-500 font-medium hover:underline">Add your first product</button>
-            </div>
-          ) : (
-            <div className="mb-3 flex items-center gap-2">
-              <button onClick={toggleSelectAll} className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800">
-                {selectedIds.size === filteredProducts.length && filteredProducts.length > 0 ? <CheckSquare size={18} className="text-red-500" /> : <Square size={18} />}
-                {selectedIds.size === filteredProducts.length && filteredProducts.length > 0 ? 'Deselect All' : 'Select All'}
-              </button>
-              {selectedIds.size > 0 && <span className="text-xs text-gray-400">{selectedIds.size} selected</span>}
             </div>
           )}
           {filteredProducts.length > 0 && (
