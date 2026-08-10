@@ -3,7 +3,8 @@ import * as XLSX from 'xlsx'
 import { supabase, type Product, type Category, type ChatMessage, type Banner, slugify } from '../lib/supabase'
 import { formatPrice, formatPriceUsd } from '../lib/cart'
 import { uploadMedia, deleteMedia, isImageFile, isVideoFile } from '../lib/media'
-import { Plus, Pencil, Trash2, X, Package, FolderTree, Grid2x2, Star, Check, CircleAlert as AlertCircle, Search, Upload, Download, Image as ImageIcon, Video, Loader as Loader2, MessageCircle, Tag, SquareCheck as CheckSquare, Square, GalleryVerticalEnd as GalleryVertical, ArrowUp, ArrowDown, Eye, EyeOff, Subtitles } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Package, FolderTree, Grid2x2, Star, Check, CircleAlert as AlertCircle, Search, Upload, Download, ChevronDown, Image as ImageIcon, Video, Loader as Loader2, MessageCircle, Tag, SquareCheck as CheckSquare, Square, GalleryVerticalEnd as GalleryVertical, ArrowUp, ArrowDown, Eye, EyeOff, Subtitles } from 'lucide-react'
+
 
 interface ProductFormData {
   sku: string
@@ -89,6 +90,7 @@ export function AdminPage() {
   const [categoryName, setCategoryName] = useState('')
   const [savingCategory, setSavingCategory] = useState(false)
   const [showBulkUpload, setShowBulkUpload] = useState(false)
+  const [showUploadMenu, setShowUploadMenu] = useState(false);
   const [uploading, setUploading] = useState(false)
   const [uploadResult, setUploadResult] = useState<{ success: number; updated: number; created: number; errors: string[] } | null>(null)
   const [mediaUploading, setMediaUploading] = useState(false)
@@ -1314,27 +1316,57 @@ const toggleShopCategoryActive = async (category: ShopCategory) => {
         </div>
       )}
 
-      <div className="flex gap-2 mb-6 border-b border-gray-200 overflow-x-auto">
-        {([['products', 'Products', Package], ['categories', 'Categories', FolderTree], ['banners', 'Banners', GalleryVertical], ['promo_banners', 'Home Promo Banners', ImageIcon], ['shop_categories', 'Shop by Category', Grid2x2], ['inquiries', `Inquiries${inquiryCount > 0 ? ` (${inquiryCount})` : ''}`, MessageCircle]] as const).map(([key, label, Icon]) => (
-          <button key={key} onClick={() => { setTab(key); if (key === 'inquiries') loadChatMessages() }}
-            className={`flex items-center gap-2 px-4 py-3 font-medium border-b-2 transition-colors whitespace-nowrap ${tab === key ? 'border-red-500 text-red-500' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-            <Icon size={18} /> {label}
-          </button>
-        ))}
-      </div>
+      <div className="sticky top-16 z-30 bg-gray-50 pb-3 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+        <div className="flex gap-2 border-b border-gray-200 overflow-x-auto">
+          {([['products', 'Products', Package], ['categories', 'Categories', FolderTree], ['banners', 'Banners', GalleryVertical], ['promo_banners', 'Home Promo Banners', ImageIcon], ['shop_categories', 'Shop by Category', Grid2x2], ['inquiries', `Inquiries${inquiryCount > 0 ? ` (${inquiryCount})` : ''}`, MessageCircle]] as const).map(([key, label, Icon]) => (
+            <button key={key} onClick={() => { setTab(key); if (key === 'inquiries') loadChatMessages() }}
+              className={`flex items-center gap-2 px-4 py-3 font-medium border-b-2 transition-colors whitespace-nowrap ${tab === key ? 'border-red-500 text-red-500' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+              <Icon size={18} /> {label}
+            </button>
+          ))}
+        </div>
 
-      {tab === 'products' && (
-        <div>
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        {tab === 'products' && (
+          <div className="flex flex-col sm:flex-row gap-3 pt-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input type="text" placeholder="Search by name or SKU..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none" />
             </div>
-            <button onClick={() => setShowBulkUpload(true)}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors">
-              <Upload size={18} /> Upload
-            </button>
+            <div className="relative">
+  <button
+    onClick={() => setShowUploadMenu(!showUploadMenu)}
+    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
+  >
+    <Upload size={18} />
+    Upload
+    <ChevronDown size={16} />
+  </button>
+
+  {showUploadMenu && (
+    <div className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-xl shadow-lg z-50">
+      <button
+        onClick={() => {
+          setShowUploadMenu(false);
+          setShowBulkUpload(true);
+        }}
+        className="w-full px-4 py-3 text-left hover:bg-gray-100"
+      >
+        📄 Upload File
+      </button>
+
+      <button
+        onClick={() => {
+          setShowUploadMenu(false);
+          alert("ZIP Folder Upload coming soon");
+        }}
+        className="w-full px-4 py-3 text-left hover:bg-gray-100"
+      >
+        📦 Upload ZIP
+      </button>
+    </div>
+  )}
+</div>
             <button onClick={downloadSelected} disabled={selectedIds.size === 0}
               className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">
               <Download size={18} /> Download{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
@@ -1344,7 +1376,11 @@ const toggleShopCategoryActive = async (category: ShopCategory) => {
               <Plus size={18} /> Add New Product
             </button>
           </div>
+        )}
+      </div>
 
+      {tab === 'products' && (
+        <div>
           {filteredProducts.length === 0 ? (
             <div className="text-center py-16 text-gray-400">
               <Package size={48} className="mx-auto mb-3 text-gray-300" />
