@@ -109,10 +109,31 @@ export function ProductDetailPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-800 mb-3">{product.name}</h1>
-          <div className="mb-6 flex items-baseline gap-4">
-            <span className="text-4xl font-bold text-red-500">{formatPrice(product.price)}</span>
-            {product.price_usd != null && <span className="text-2xl font-bold text-gray-400">{formatPriceUsd(product.price_usd)}</span>}
-          </div>
+         <div className="mb-6">
+  {product.mrp && product.mrp > product.price && (
+    <div className="flex items-center gap-3 mb-2">
+      <span className="text-2xl text-gray-400 line-through">
+        {formatPrice(product.mrp)}
+      </span>
+
+      <span className="text-lg font-bold text-green-600">
+        {Math.round(((product.mrp - product.price) / product.mrp) * 100)}% OFF
+      </span>
+    </div>
+  )}
+
+  <div className="flex items-baseline gap-4">
+    <span className="text-4xl font-bold text-red-500">
+      {formatPrice(product.price)}
+    </span>
+
+    {product.price_usd != null && (
+      <span className="text-2xl font-bold text-gray-400">
+        {formatPriceUsd(product.price_usd)}
+      </span>
+    )}
+  </div>
+</div>
 
           {specs.length > 0 && (
             <div className="mb-6 bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-5 border border-orange-100">

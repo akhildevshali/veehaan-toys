@@ -50,9 +50,28 @@ export function ProductCard({ product, onCartUpdate }: ProductCardProps) {
         )}
         <div className="flex items-center justify-between mt-3">
           <div>
-            <p className="text-lg font-bold text-red-500">{formatPrice(product.price)}</p>
-            {product.price_usd != null && <p className="text-sm font-medium text-gray-400">{formatPriceUsd(product.price_usd)}</p>}
-          </div>
+  {product.mrp && product.mrp > product.price && (
+    <>
+      <p className="text-sm text-gray-400 line-through">
+        {formatPrice(product.mrp)}
+      </p>
+
+      <p className="text-xs font-semibold text-green-600">
+        {Math.round(((product.mrp - product.price) / product.mrp) * 100)}% OFF
+      </p>
+    </>
+  )}
+
+  <p className="text-lg font-bold text-red-500">
+    {formatPrice(product.price)}
+  </p>
+
+  {product.price_usd != null && (
+    <p className="text-sm font-medium text-gray-400">
+      {formatPriceUsd(product.price_usd)}
+    </p>
+  )}
+</div>
           <button onClick={handleAddToCart} disabled={adding}
             className={`p-2.5 rounded-xl transition-all ${adding ? 'bg-green-500 text-white scale-90' : 'bg-gradient-to-r from-red-400 to-orange-400 text-white hover:from-red-500 hover:to-orange-500'}`}>
             <ShoppingCart size={18} />
