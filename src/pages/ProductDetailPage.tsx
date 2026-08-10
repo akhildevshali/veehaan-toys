@@ -52,7 +52,12 @@ export function ProductDetailPage() {
     )
   }
 
-  const allImages = [product.image_url, ...(product.additional_images || [])].filter(Boolean)
+  const allImages = [
+  ...new Set([
+    product.image_url,
+    ...(product.additional_images || [])
+  ].filter(Boolean))
+];
   const currentImage = allImages[activeImage]
   const specs = (product.specifications || []).filter((s) => s && s.trim())
 
@@ -75,7 +80,7 @@ export function ProductDetailPage() {
                 <img
                   src={currentImage}
                   alt={product.name}
-                  className="w-full h-full object-cover transition-transform duration-200 ease-out"
+                  className="w-full h-full object-contain transition-transform duration-200 ease-out"
                   style={{
                     transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
                     transform: zoomActive ? 'scale(2)' : 'scale(1)',
@@ -96,7 +101,7 @@ export function ProductDetailPage() {
             {allImages.map((img, i) => (
               <button key={i} onClick={() => { setActiveImage(i); setShowVideo(false) }}
                 className={`w-16 h-16 rounded-lg overflow-hidden border-2 flex-shrink-0 ${activeImage === i && !showVideo ? 'border-red-500' : 'border-gray-200'}`}>
-                <img src={img} alt={`${product.name} ${i + 1}`} className="w-full h-full object-cover" />
+                <img src={img} alt={`${product.name} ${i + 1}`} className="w-full h-full object-contain" />
               </button>
             ))}
             {product.video_url && (

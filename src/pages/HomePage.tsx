@@ -120,6 +120,7 @@ const [
   .order('sort_order', { ascending: true }),
   supabase.from('shop_categories').select('*').eq('is_active', true).order('display_order', { ascending: true }),
 ])
+
     setProducts(prods || [])
     setCategories(cats || [])
     setBanners(bann || [])

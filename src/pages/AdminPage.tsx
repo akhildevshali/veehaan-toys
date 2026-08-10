@@ -4,7 +4,7 @@ import { supabase, type Product, type Category, type ChatMessage, type Banner, s
 import { formatPrice, formatPriceUsd } from '../lib/cart'
 import { uploadMedia, deleteMedia, isImageFile, isVideoFile } from '../lib/media'
 import { Plus, Pencil, Trash2, X, Package, FolderTree, Grid2x2, Star, Check, CircleAlert as AlertCircle, Search, Upload, Download, ChevronDown, Image as ImageIcon, Video, Loader as Loader2, MessageCircle, Tag, SquareCheck as CheckSquare, Square, GalleryVerticalEnd as GalleryVertical, ArrowUp, ArrowDown, Eye, EyeOff, Subtitles } from 'lucide-react'
-
+import JSZip from "jszip";
 
 interface ProductFormData {
   sku: string
@@ -92,6 +92,7 @@ export function AdminPage() {
   const [showBulkUpload, setShowBulkUpload] = useState(false)
   const [showUploadMenu, setShowUploadMenu] = useState(false);
   const [uploading, setUploading] = useState(false)
+  const zipInputRef = useRef<HTMLInputElement>(null);
   const [uploadResult, setUploadResult] = useState<{ success: number; updated: number; created: number; errors: string[] } | null>(null)
   const [mediaUploading, setMediaUploading] = useState(false)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
@@ -177,6 +178,105 @@ const [productsPerPage, setProductsPerPage] = useState(12)
     setError('')
     setShowForm(true)
   }
+
+  const handleZipClick = () => {
+    setShowUploadMenu(false);
+    zipInputRef.current?.click();
+  };
+
+  const handleZipSelect = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    
+const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+    alert("ZIP file size must be less than 50 MB.");
+    e.target.value = "";
+    return;
+  }
+console.log(file);
+
+  const zip = await JSZip.loadAsync(file);
+
+  console.log("ZIP Contents:");
+
+  Object.keys(zip.files).forEach((fileName) => {
+    console.log(fileName);
+  });
+
+const imageFiles: any[] = [];
+
+zip.forEach((relativePath, zipEntry) => {
+  if (
+    !zipEntry.dir &&
+    /\.(jpg|jpeg|png|webp)$/i.test(zipEntry.name)
+  ) {
+    imageFiles.push(zipEntry);
+  }
+});
+
+console.log("Images Found:", imageFiles);
+console.log("Total Images:", imageFiles.length);
+
+for (const image of imageFiles) {
+  
+  const blob = await image.async("blob");
+  console.log("Image:", image.name);
+  console.log(blob);
+  const fileName = image.name.split("/").pop() || "";
+
+  const sku = fileName
+    .replace(/\.[^/.]+$/, "")
+    .replace(/-\d+$/, "");
+
+  console.log("File:", fileName);
+  console.log("SKU:", sku);
+  const filePath = `zip-upload/${image.name}`;
+
+const { data, error } = await supabase.storage
+  .from("product-media")
+  .upload(filePath, blob, {
+    upsert: true,
+  });
+
+if (error) {
+  console.error("Upload Error:", error);
+} else {
+  console.log("Uploaded:", data.path);
+  const publicUrl = supabase.storage
+  .from("product-media")
+  .getPublicUrl(data.path).data.publicUrl;
+
+console.log("Public URL:", publicUrl);
+const { data: existingProduct } = await supabase
+  .from("products")
+  .select("image_url, additional_images")
+  .eq("sku", sku)
+  .single();
+
+const updatedImages = existingProduct?.additional_images || [];
+updatedImages.push(publicUrl);
+
+const { error: updateError } = await supabase
+  .from("products")
+  .update({
+    image_url: existingProduct?.image_url || publicUrl,
+    additional_images: updatedImages,
+  })
+  .eq("sku", sku);
+
+if (updateError) {
+  console.error("DB Update Error:", updateError);
+} else {
+  console.log("Database Updated:", sku);
+}
+}
+}
+};  
 
   const openEditForm = (product: Product) => {
     setEditingProduct(product)
@@ -1350,17 +1450,14 @@ const toggleShopCategoryActive = async (category: ShopCategory) => {
           setShowUploadMenu(false);
           setShowBulkUpload(true);
         }}
-        className="w-full px-4 py-3 text-left hover:bg-gray-100"
+        className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-gray-100"
       >
         📄 Upload File
       </button>
 
       <button
-        onClick={() => {
-          setShowUploadMenu(false);
-          alert("ZIP Folder Upload coming soon");
-        }}
-        className="w-full px-4 py-3 text-left hover:bg-gray-100"
+       onClick={handleZipClick}
+        className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-gray-100"
       >
         📦 Upload ZIP
       </button>
@@ -2544,6 +2641,14 @@ outline-none
           </div>
         </div>
       )}
+
+<input
+  ref={zipInputRef}
+  type="file"
+  accept=".zip"
+  style={{ display: "none" }}
+  onChange={handleZipSelect}
+/>
 
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
