@@ -134,7 +134,7 @@ const [
 
   const perks = [
     { icon: Truck, title: 'Free Shipping', desc: 'On orders over ₹499' },
-    { icon: ShieldCheck, title: 'Safe & Secure', desc: '100% safe toys' },
+    { icon: ShieldCheck, title: 'Safe & Secure', },
     { icon: RefreshCw, title: 'Easy Returns', desc: '5-day return policy' },
     { icon: Phone, title: 'Support', desc: 'Always here to help' },
   ]
