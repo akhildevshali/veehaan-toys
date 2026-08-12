@@ -210,7 +210,7 @@ console.log(file);
 
 const imageFiles: any[] = [];
 
-zip.forEach((relativePath, zipEntry) => {
+zip.forEach((relativePath: string, zipEntry) => {
   if (
     !zipEntry.dir &&
     /\.(jpg|jpeg|png|webp)$/i.test(zipEntry.name)
