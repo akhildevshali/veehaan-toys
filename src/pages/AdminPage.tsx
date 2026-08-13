@@ -1816,6 +1816,25 @@ outline-none
     </button>
   </div>
 
+  <div
+  className="w-24 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0"
+  style={
+    banner.image_url
+      ? {
+          backgroundImage: `url(${banner.image_url})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }
+      : {}
+  }
+>
+  {!banner.image_url && (
+    <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
+      No Image
+    </div>
+  )}
+</div>
+
   <div>
     <h3 className="text-lg font-bold">
       {banner.title}
