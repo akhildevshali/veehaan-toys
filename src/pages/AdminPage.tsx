@@ -137,6 +137,44 @@ const [productsPerPage, setProductsPerPage] = useState(12)
 
   useEffect(() => { loadData() }, [])
 
+  useEffect(() => {
+  const handleEsc = (e: KeyboardEvent) => {
+    if (e.key !== "Escape") return;
+
+    if (showForm) closeForm();
+
+    if (showBannerForm) closeBannerForm();
+
+    if (showPromoBannerForm) closePromoBannerForm();
+
+    if (showShopCategoryForm) setShowShopCategoryForm(false);
+
+    if (showBulkUpload) {
+      setShowBulkUpload(false);
+      setUploadResult(null);
+    }
+
+    if (deleteConfirm) setDeleteConfirm(null);
+
+    if (deleteBannerConfirm) setDeleteBannerConfirm(null);
+
+    if (deletePromoBannerConfirm) setDeletePromoBannerConfirm(null);
+  };
+
+  window.addEventListener("keydown", handleEsc);
+
+  return () => window.removeEventListener("keydown", handleEsc);
+}, [
+  showForm,
+  showBannerForm,
+  showPromoBannerForm,
+  showShopCategoryForm,
+  showBulkUpload,
+  deleteConfirm,
+  deleteBannerConfirm,
+  deletePromoBannerConfirm,
+]);
+
   const loadData = async () => {
     const [{ data: prods }, { data: cats }, { data: bann }, { data: promoBann }, { data: shopCats }] = await Promise.all([
       supabase.from('products').select('*').order('created_at', { ascending: false }),
