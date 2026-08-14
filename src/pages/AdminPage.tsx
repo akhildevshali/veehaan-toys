@@ -79,6 +79,7 @@ export function AdminPage() {
     'shop_categories' |
     'inquiries'
   >('products')
+
   const [showForm, setShowForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [formData, setFormData] = useState<ProductFormData>(emptyProduct)
@@ -93,6 +94,17 @@ export function AdminPage() {
   const [showUploadMenu, setShowUploadMenu] = useState(false);
   const [uploading, setUploading] = useState(false)
   const zipInputRef = useRef<HTMLInputElement>(null);
+  const [showZipUploadModal, setShowZipUploadModal] = useState(false);
+  const [zipUpload, setZipUpload] = useState({
+  fileName: "",
+  total: 0,
+  uploaded: 0,
+  failed: 0,
+  currentFile: "",
+  progress: 0,
+  completed: false,
+  errors: [] as string[],
+});
   const [uploadResult, setUploadResult] = useState<{ success: number; updated: number; created: number; errors: string[] } | null>(null)
   const [mediaUploading, setMediaUploading] = useState(false)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
@@ -106,7 +118,9 @@ export function AdminPage() {
   const [bannerImageUploading, setBannerImageUploading] = useState(false)
   const [deleteBannerConfirm, setDeleteBannerConfirm] = useState<string | null>(null)
   const [promoBanners, setPromoBanners] = useState<any[]>([])
-const [promoBannerForm, setPromoBannerForm] = useState<any>({
+  const [promoBannerForm, setPromoBannerForm] = useState<any>({
+    
+
   title: '',
   subtitle: '',
   button_text: '',
@@ -131,6 +145,7 @@ const [productsPerPage, setProductsPerPage] = useState(12)
   const [deletePromoBannerConfirm, setDeletePromoBannerConfirm] = useState<number | null>(null)
   const bannerImageInputRef = useRef<HTMLInputElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const [replaceIndex, setReplaceIndex] = useState<number | null>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
   const bulkFileRef = useRef<HTMLInputElement>(null)
   const promoBannerImageInputRef = useRef<HTMLInputElement>(null)
@@ -225,9 +240,20 @@ const [productsPerPage, setProductsPerPage] = useState(12)
   const handleZipSelect = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
+    setShowZipUploadModal(true);
     const file = e.target.files?.[0];
 
     if (!file) return;
+    setZipUpload({
+  fileName: file.name,
+  total: 0,
+  uploaded: 0,
+  failed: 0,
+  currentFile: "",
+  progress: 0,
+  completed: false,
+  errors: [],
+});
 
     
 const maxSize = 50 * 1024 * 1024;
@@ -260,6 +286,11 @@ zip.forEach((relativePath: string, zipEntry) => {
 console.log("Images Found:", imageFiles);
 console.log("Total Images:", imageFiles.length);
 
+setZipUpload(prev => ({
+  ...prev,
+  total: imageFiles.length,
+}));
+
 for (const image of imageFiles) {
   
   const blob = await image.async("blob");
@@ -267,52 +298,121 @@ for (const image of imageFiles) {
   console.log(blob);
   const fileName = image.name.split("/").pop() || "";
 
+  
+  setZipUpload(prev => ({
+  ...prev,
+  currentFile: fileName,
+}));
+
   const sku = fileName
     .replace(/\.[^/.]+$/, "")
     .replace(/-\d+$/, "");
 
+const match = fileName.match(/-(\d+)\.[^.]+$/);
+const imagePosition = match
+  ? parseInt(match[1], 10)
+  : 1;
+
   console.log("File:", fileName);
   console.log("SKU:", sku);
-  const filePath = `zip-upload/${image.name}`;
+  
+try {
+  const uploadFile = new File(
+    [blob],
+    fileName,
+    {
+      type: blob.type || "image/jpeg",
+    }
+  );
 
-const { data, error } = await supabase.storage
-  .from("product-media")
-  .upload(filePath, blob, {
-    upsert: true,
-  });
+  const { data: existingProduct, error: fetchError } = await supabase
+    .from("products")
+    .select("image_url, additional_images")
+    .eq("sku", sku)
+    .single();
 
-if (error) {
-  console.error("Upload Error:", error);
-} else {
-  console.log("Uploaded:", data.path);
-  const publicUrl = supabase.storage
-  .from("product-media")
-  .getPublicUrl(data.path).data.publicUrl;
-
-console.log("Public URL:", publicUrl);
-const { data: existingProduct } = await supabase
-  .from("products")
-  .select("image_url, additional_images")
-  .eq("sku", sku)
-  .single();
-
-const updatedImages = existingProduct?.additional_images || [];
-updatedImages.push(publicUrl);
-
-const { error: updateError } = await supabase
-  .from("products")
-  .update({
-    image_url: existingProduct?.image_url || publicUrl,
-    additional_images: updatedImages,
-  })
-  .eq("sku", sku);
-
-if (updateError) {
-  console.error("DB Update Error:", updateError);
-} else {
-  console.log("Database Updated:", sku);
+    if (!existingProduct) {
+  throw new Error(`SKU not found: ${sku}`);
 }
+
+const publicUrl = await uploadMedia(uploadFile);
+console.log("Cloudinary URL:", publicUrl);
+
+let oldImageUrl: string | null = null;
+
+if (imagePosition === 1) {
+  oldImageUrl = existingProduct.image_url;
+} else {
+  oldImageUrl = existingProduct.additional_images?.[imagePosition - 2] || null;
 }
+
+  const updatedImages = [...(existingProduct?.additional_images || [])];
+  if (imagePosition === 1) {
+  // Main Image
+  existingProduct.image_url = publicUrl;
+} else {
+  // Image 2 onwards
+  updatedImages[imagePosition - 2] = publicUrl;
+}
+
+  const { error: updateError } = await supabase
+    .from("products")
+    .update({
+      image_url: existingProduct?.image_url || publicUrl,
+      additional_images: updatedImages,
+    })
+    .eq("sku", sku);
+
+  if (!updateError && oldImageUrl) {
+  try {
+    await deleteMedia(oldImageUrl);
+    console.log("Old image deleted:", oldImageUrl);
+  } catch (err) {
+    console.error("Failed to delete old image:", err);
+  }
+}  
+
+  if (updateError) {
+    console.error("DB Update Error:", updateError);
+  } else {
+    console.log("Database Updated:", sku);
+
+  setZipUpload(prev => {
+  const uploaded = prev.uploaded + 1;
+  const processed = uploaded + prev.failed;
+
+  return {
+    ...prev,
+    uploaded,
+    progress: Math.round((processed / prev.total) * 100),
+    completed: processed === prev.total,
+    currentFile: processed === prev.total ? "" : fileName,
+  };
+});
+  }
+
+
+} catch (err) {
+  console.error("Cloudinary Upload Error:", err);
+
+ setZipUpload(prev => {
+  const failed = prev.failed + 1;
+  const processed = prev.uploaded + failed;
+
+  return {
+    ...prev,
+    failed,
+    progress: Math.round((processed / prev.total) * 100),
+    completed: processed === prev.total,
+    currentFile: processed === prev.total ? "" : fileName,
+    errors: [
+      ...prev.errors,
+      `${fileName} failed`,
+    ],
+  };
+});
+}
+
 }
 };  
 
@@ -420,6 +520,50 @@ if (updateError) {
       additional_images: images.slice(1),
     }))
   }
+
+const handleReplaceImage = async (
+  e: React.ChangeEvent<HTMLInputElement>,
+  index: number
+) => {
+  const file = e.target.files?.[0]
+  if (!file) return
+
+  try {
+    setMediaUploading(true)
+
+    const images = [...allFormImages]
+    const oldImage = images[index]
+
+    // Upload new image
+    const newImage = await uploadMedia(file)
+
+    // Delete old image from Cloudinary
+    if (oldImage) {
+      await deleteMedia(oldImage)
+    }
+
+    // Replace image in array
+    images[index] = newImage
+
+    setFormData(prev => ({
+      ...prev,
+      image_url: images[0] || "",
+      additional_images: images.slice(1),
+    }))
+
+    setReplaceIndex(null)
+
+    if (imageInputRef.current) {
+      imageInputRef.current.value = ""
+    }
+
+  } catch (err) {
+    setError(String(err instanceof Error ? err.message : err))
+  } finally {
+    setMediaUploading(false)
+  }
+}
+
 
   const removeVideo = async () => {
     if (formData.video_url) await deleteMedia(formData.video_url)
@@ -2589,7 +2733,13 @@ outline-none
                     </button>
                   )}
                 </div>
-                <input ref={imageInputRef} type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
+                <input ref={imageInputRef} type="file" accept="image/*" multiple onChange={(e) => {
+  if (replaceIndex !== null) {
+    handleReplaceImage(e, replaceIndex)
+  } else {
+    handleImageUpload(e)
+  }
+}} className="hidden" />
                 <p className="text-xs text-gray-400 mt-1">First image is the main image. Max 5MB per image.</p>
               </div>
 
@@ -2698,6 +2848,115 @@ outline-none
           </div>
         </div>
       )}
+
+{showZipUploadModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="bg-white rounded-2xl w-full max-w-[440px] p-5">
+
+      <h2 className="text-xl font-bold text-gray-800 mb-6">
+        Upload ZIP Images
+      </h2>
+
+      <div className="py-4 space-y-3">
+
+  <div>
+    <p className="text-xs text-gray-500 uppercase">ZIP File</p>
+    <p className="font-medium text-gray-800">
+      {zipUpload.fileName || "-"}
+    </p>
+  </div>
+
+  <div>
+    <p className="text-xs text-gray-500 uppercase">Images Found</p>
+    <p className="font-medium text-gray-800">
+      {zipUpload.total}
+    </p>
+  </div>
+
+{!zipUpload.completed && (
+  <div>
+    <p className="text-xs text-gray-500 uppercase">
+      Current File
+    </p>
+
+    <p className="font-medium text-gray-800 break-all">
+      {zipUpload.currentFile || "Preparing..."}
+    </p>
+  </div>
+)}
+
+  <div className="text-center pt-4">
+    <div className="text-5xl mb-3">
+  {zipUpload.completed ? "✅" : "📦"}
+</div>
+
+  <p className="text-lg font-semibold text-gray-800">
+  {zipUpload.completed
+    ? "Upload Completed!"
+    : zipUpload.currentFile
+      ? `Uploading ${zipUpload.uploaded} / ${zipUpload.total}`
+      : "Preparing Upload..."}
+</p>
+  </div>
+
+<div className="w-full bg-gray-200 rounded-full h-3 mt-4">
+  <div
+    className="bg-green-600 h-3 rounded-full transition-all duration-300"
+    style={{ width: `${zipUpload.progress}%` }}
+  />
+</div>
+
+<p className="text-sm text-center text-gray-500 mt-2">
+  {
+  Math.round(
+    ((zipUpload.uploaded + zipUpload.failed) /
+      zipUpload.total) * 100
+  )
+}%
+</p>
+
+<p className="text-center text-gray-700 mt-4 font-medium">
+  Success: {zipUpload.uploaded}
+</p>
+
+<p className="text-center text-red-600 font-medium mt-1">
+  Failed: {zipUpload.failed}
+</p>
+
+<p className="text-center text-gray-500 text-sm mt-1">
+  {zipUpload.currentFile}
+</p>
+
+{zipUpload.completed && (
+  <div className="mt-6 flex justify-center">
+    <button
+  onClick={() => {
+    setShowZipUploadModal(false);
+
+    setZipUpload({
+      fileName: "",
+      total: 0,
+      uploaded: 0,
+      failed: 0,
+      currentFile: "",
+      progress: 0,
+      completed: false,
+      errors: [],
+    });
+  }}
+  className="px-8 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+>
+  Close
+</button>
+  </div>
+)}
+
+</div>
+
+    </div>
+
+  </div>
+)}
 
 <input
   ref={zipInputRef}
