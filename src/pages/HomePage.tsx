@@ -150,7 +150,7 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
   return (
     <div>
       <section
-        className="relative overflow-hidden h-[420px] sm:h-[480px] z-10"
+        className="relative overflow-hidden aspect-[3/1] z-10"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
@@ -190,11 +190,6 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
                   )}
                   {b.image_url && <div className="absolute inset-0 bg-black/30" />}
                   <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col items-center justify-center text-center">
-                    <h1 className="text-4xl sm:text-6xl font-bold mb-4 drop-shadow-lg">{b.title}</h1>
-                    {b.subtitle && <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-2xl mx-auto">{b.subtitle}</p>}
-                    {b.button_text && b.button_link && (
-                      <Link to={b.button_link} className="inline-block bg-white text-red-500 font-bold px-8 py-4 rounded-full hover:bg-yellow-50 hover:scale-105 transition-all shadow-lg">{b.button_text}</Link>
-                    )}
                   </div>
                 </div>
               )
@@ -248,7 +243,7 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
                 className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
               >
                 <div
-                  className="w-full h-48 md:h-56 flex items-center justify-center p-6"
+                  className="w-full aspect-[2.82/1] flex items-center justify-center p-6"
                   style={
                     banner.image_url
                       ? {
