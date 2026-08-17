@@ -14,6 +14,7 @@ import CompleteProfilePage from "./pages/CompleteProfilePage";
 import MyProfilePage from "./pages/MyProfilePage";
 import SavedAddressesPage from "./pages/SavedAddressesPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 export default function App() {
   return (
@@ -52,6 +53,12 @@ export default function App() {
     </ProtectedRoute>
   }
 />
+
+<Route
+  path="/reset-password"
+  element={<ResetPasswordPage />}
+/>
+
         </Routes>
       </main>
       <footer className="bg-gray-900 text-gray-400 py-12">

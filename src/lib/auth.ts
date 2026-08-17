@@ -28,3 +28,15 @@ export async function getSession() {
 
   return session;
 }
+
+export async function resetPassword(email: string, redirectTo: string) {
+  return await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo,
+  });
+}
+
+export async function updatePassword(password: string) {
+  return await supabase.auth.updateUser({
+    password,
+  });
+}
