@@ -1118,12 +1118,6 @@ setPromoBannerForm({
   const handleSavePromoBanner = async () => {
   setError('')
 
-  const title = promoBannerForm.title.trim()
-
-  if (!title) {
-    setError('Banner title is required.')
-    return
-  }
 
   const activePromoCount = promoBanners.filter(
     (b: any) => b.is_active && b.id !== editingPromoBanner?.id
@@ -1135,7 +1129,7 @@ setPromoBannerForm({
   }
 
   const payload = {
-    title,
+    title: '',
     subtitle: promoBannerForm.subtitle.trim(),
     button_text: promoBannerForm.button_text.trim(),
     button_link: promoBannerForm.button_link.trim(),
@@ -2534,16 +2528,7 @@ outline-none
               </div>
             )}
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
-                <input value={promoBannerForm.title} onChange={(e) => setPromoBannerForm({ ...promoBannerForm, title: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none" placeholder="e.g. Welcome to VeehaanToys" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Subtitle</label>
-                <textarea value={promoBannerForm.subtitle} onChange={(e) => setPromoBannerForm({ ...promoBannerForm, subtitle: e.target.value })}
-                  rows={2} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none resize-none" placeholder="Supporting text shown under the title" />
-              </div>
+              
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Button Text</label>
