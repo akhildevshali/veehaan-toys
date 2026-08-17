@@ -2311,14 +2311,10 @@ outline-none
                     )}
                     <div className="space-y-4">
                     
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                      
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Button Text</label>
-                          <input value={bannerForm.button_text} onChange={(e) => setBannerForm({ ...bannerForm, button_text: e.target.value })}
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none" placeholder="e.g. Shop Now" />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Button Link</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Banner Link</label>
                           <input value={bannerForm.button_link} onChange={(e) => setBannerForm({ ...bannerForm, button_link: e.target.value })}
                             className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none" placeholder="e.g. /shop" />
                         </div>
@@ -2397,41 +2393,6 @@ outline-none
       </div>
 <div className="space-y-4">
 
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1">
-      Category Title
-    </label>
-
-    <input
-      value={shopCategoryForm.title}
-      onChange={(e) =>
-        setShopCategoryForm({
-          ...shopCategoryForm,
-          title: e.target.value,
-        })
-      }
-      className="w-full border rounded-xl px-4 py-3"
-      placeholder="e.g. Educational Toys"
-    />
-  </div>
-  <div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">
-    Subtitle
-  </label>
-
-  <textarea
-    value={shopCategoryForm.subtitle}
-    onChange={(e) =>
-      setShopCategoryForm({
-        ...shopCategoryForm,
-        subtitle: e.target.value,
-      })
-    }
-    className="w-full border rounded-xl px-4 py-3"
-    rows={2}
-    placeholder="Supporting text shown under the title"
-  />
-</div>
 <div>
   <label className="block text-sm font-medium text-gray-700 mb-1">
     Category Image

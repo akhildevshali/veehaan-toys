@@ -180,7 +180,7 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
                 ? { backgroundImage: `url(${b.image_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
                 : { background: b.background_color || 'linear-gradient(to right, #ef4444, #f59e0b)' }
               return (
-                <div key={b.id} className={`${slideClass} text-white transition-all`} style={bgStyle}>
+                <Link key={b.id} to={b.button_link || '/shop'} className={`${slideClass} text-white transition-all`} style={bgStyle}>
                   {!b.image_url && (
                     <div className="absolute inset-0 opacity-20">
                       <div className="absolute top-10 left-10 text-9xl">🧸</div>
@@ -191,7 +191,7 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
                   {b.image_url && <div className="absolute inset-0 bg-black/30" />}
                   <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col items-center justify-center text-center">
                   </div>
-                </div>
+                </Link>
               )
             })}
 
