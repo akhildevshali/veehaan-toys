@@ -697,6 +697,8 @@ if (mrp !== null && (isNaN(mrp) || mrp < 0)) {
         mrp: 0,
         image_url: 'https://images.pexels.com/photos/...',
         category: 'Soft Toys',
+        sub_category: 'Plush Teddy Bears',
+        vertical: 'Small Size',
         stock_quantity: 50,
         in_stock: 'yes',
         featured: 'no',
@@ -715,6 +717,8 @@ if (mrp !== null && (isNaN(mrp) || mrp < 0)) {
         price_usd: 9.99,
         image_url: 'https://images.pexels.com/photos/...',
         category: 'Educational',
+        sub_category: 'Building Blocks',
+        vertical: 'Wooden Blocks',
         stock_quantity: 30,
         in_stock: 'yes',
         featured: 'yes',
@@ -722,10 +726,12 @@ if (mrp !== null && (isNaN(mrp) || mrp < 0)) {
     ]
     const ws = XLSX.utils.json_to_sheet(template)
     ws['!cols'] = [
-      { wch: 18 }, { wch: 25 }, { wch: 50 },
-      { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 },
-      { wch: 14 }, { wch: 14 }, { wch: 40 }, { wch: 20 }, { wch: 15 }, { wch: 10 }, { wch: 10 },
-    ]
+  { wch: 18 }, { wch: 25 }, { wch: 50 },
+  { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 },
+  { wch: 14 }, { wch: 14 }, { wch: 40 },
+  { wch: 20 }, { wch: 20 }, { wch: 20 },
+  { wch: 15 }, { wch: 10 }, { wch: 10 },
+]
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Products')
     XLSX.writeFile(wb, 'product-upload-template.xlsx')
@@ -777,19 +783,142 @@ const mrp =
         setUploading(false)
         return
       }
+
       const categoryNames = new Set<string>()
-      validRows.forEach((row) => {
-        const catName = String(row['category'] ?? '').trim()
-        if (catName) categoryNames.add(catName)
+
+validRows.forEach((row) => {
+  const catName = String(row['category'] ?? '').trim()
+  if (catName) categoryNames.add(catName)
+})
+
+const categoryNameToId = new Map<string, string>()
+
+categories.forEach((cat) => {
+  categoryNameToId.set(cat.name.toLowerCase(), cat.id)
+})
+
+// Create missing categories
+for (const catName of categoryNames) {
+  if (!categoryNameToId.has(catName.toLowerCase())) {
+    const { data: newCat, error: catError } = await supabase
+      .from('categories')
+      .insert({
+        name: catName,
+        slug: slugify(catName),
       })
-      const categoryNameToId = new Map<string, string>()
-      categories.forEach((cat) => categoryNameToId.set(cat.name.toLowerCase(), cat.id))
-      for (const catName of categoryNames) {
-        if (!categoryNameToId.has(catName.toLowerCase())) {
-          const { data: newCat } = await supabase.from('categories').insert({ name: catName, slug: slugify(catName) }).select().single()
-          if (newCat) categoryNameToId.set(catName.toLowerCase(), newCat.id)
-        }
+      .select()
+      .single()
+
+    if (catError) {
+      throw new Error(`Category "${catName}": ${catError.message}`)
+    }
+
+    if (newCat) {
+      categoryNameToId.set(catName.toLowerCase(), newCat.id)
+    }
+  }
+}
+
+// -----------------------------------------
+// CATEGORY → SUB-CATEGORY → VERTICAL
+// -----------------------------------------
+
+const subCategoryNameToId = new Map<string, string>()
+const verticalNameToId = new Map<string, string>()
+
+for (const row of validRows) {
+  const catName = String(row['category'] ?? '').trim()
+  const subCategoryName = String(row['sub_category'] ?? '').trim()
+  const verticalName = String(row['vertical'] ?? '').trim()
+
+  if (!catName || !subCategoryName) continue
+
+  const categoryId = categoryNameToId.get(catName.toLowerCase())
+
+  if (!categoryId) {
+    throw new Error(`Category "${catName}" could not be resolved.`)
+  }
+
+  // Unique key = category + sub-category
+  const subKey = `${categoryId}:${subCategoryName.toLowerCase()}`
+
+  let subCategoryId = subCategoryNameToId.get(subKey)
+
+  if (!subCategoryId) {
+    const { data: existingSub } = await supabase
+      .from('sub_categories')
+      .select('id')
+      .eq('category_id', categoryId)
+      .eq('name', subCategoryName)
+      .maybeSingle()
+
+    if (existingSub) {
+      subCategoryId = existingSub.id
+    } else {
+      const { data: newSub, error: subError } = await supabase
+        .from('sub_categories')
+        .insert({
+          category_id: categoryId,
+          name: subCategoryName,
+          slug: slugify(subCategoryName),
+        })
+        .select()
+        .single()
+
+      if (subError) {
+        throw new Error(
+          `Sub-category "${subCategoryName}" under "${catName}": ${subError.message}`
+        )
       }
+
+      subCategoryId = newSub.id
+    }
+
+    if (!subCategoryId) {
+  throw new Error(
+    `Could not resolve sub-category "${subCategoryName}" under "${catName}".`
+  )
+}
+
+    subCategoryNameToId.set(subKey, subCategoryId)
+  }
+
+  if (!verticalName) continue
+
+  // Unique key = sub-category + vertical
+  const verticalKey = `${subCategoryId}:${verticalName.toLowerCase()}`
+
+  if (!verticalNameToId.has(verticalKey)) {
+    const { data: existingVertical } = await supabase
+      .from('verticals')
+      .select('id')
+      .eq('sub_category_id', subCategoryId)
+      .eq('name', verticalName)
+      .maybeSingle()
+
+    if (existingVertical) {
+      verticalNameToId.set(verticalKey, existingVertical.id)
+    } else {
+      const { data: newVertical, error: verticalError } = await supabase
+        .from('verticals')
+        .insert({
+          sub_category_id: subCategoryId,
+          name: verticalName,
+          slug: slugify(verticalName),
+        })
+        .select()
+        .single()
+
+      if (verticalError) {
+        throw new Error(
+          `Vertical "${verticalName}" under "${subCategoryName}": ${verticalError.message}`
+        )
+      }
+
+      verticalNameToId.set(verticalKey, newVertical.id)
+    }
+  }
+}
 
       const allSkus = validRows.map((row) => String(row['sku']).trim())
       const existingSkuMap = new Map<string, string>()
@@ -824,6 +953,28 @@ const mrp =
         const usdRaw = row['price_usd'] ?? row['price_usd ($)']
         const priceUsd = usdRaw != null && usdRaw !== '' ? (typeof usdRaw === 'number' ? usdRaw : parseFloat(String(usdRaw))) : null
         const catName = String(row['category'] ?? '').trim()
+
+        const subCategoryName = String(row['sub_category'] ?? '').trim()
+const verticalName = String(row['vertical'] ?? '').trim()
+
+const categoryId = catName
+  ? categoryNameToId.get(catName.toLowerCase()) || null
+  : null
+
+const subCategoryId =
+  categoryId && subCategoryName
+    ? subCategoryNameToId.get(
+        `${categoryId}:${subCategoryName.toLowerCase()}`
+      ) || null
+    : null
+
+const verticalId =
+  subCategoryId && verticalName
+    ? verticalNameToId.get(
+        `${subCategoryId}:${verticalName.toLowerCase()}`
+      ) || null
+    : null
+
         const stockRaw = row['stock_quantity']
         const stock = typeof stockRaw === 'number' ? stockRaw : parseInt(String(stockRaw ?? '0'), 10)
         const inStockVal = String(row['in_stock'] ?? 'yes').trim().toLowerCase()
@@ -844,7 +995,9 @@ const mrp =
           image_url: String(row['image_url'] ?? '').trim(),
           additional_images: [] as string[],
           video_url: null as string | null,
-          category_id: catName ? categoryNameToId.get(catName.toLowerCase()) || null : null,
+          category_id: categoryId,
+          sub_category_id: subCategoryId,
+          vertical_id: verticalId,
           stock_quantity: isNaN(stock) ? 0 : Math.max(0, stock),
           in_stock: inStockVal === 'yes' || inStockVal === 'true' || inStockVal === '1',
           featured: featuredVal === 'yes' || featuredVal === 'true' || featuredVal === '1',

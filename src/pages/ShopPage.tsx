@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Search, SlidersHorizontal } from 'lucide-react'
-import { supabase, type Product, type Category } from '../lib/supabase'
+import { supabase, type Product, type Category, type SubCategory, type Vertical, } from '../lib/supabase'
 import { ProductCard } from '../components/ProductCard'
 
 export function ShopPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [subCategories, setSubCategories] = useState<SubCategory[]>([])
+  const [verticals, setVerticals] = useState<Vertical[]>([])
   const [loading, setLoading] = useState(true)
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '')
+  const [selectedSubCategory, setSelectedSubCategory] = useState(searchParams.get('sub_category') || '')
+  const [selectedVertical, setSelectedVertical] = useState(searchParams.get('vertical') || '')
   const [sortBy, setSortBy] = useState('newest')
   const [showFilters, setShowFilters] = useState(false)
 
@@ -22,33 +26,115 @@ export function ShopPage() {
   }, [searchParams])
 
   const loadData = async () => {
-    const [{ data: prods }, { data: cats }] = await Promise.all([
-      supabase.from('products').select('*').order('created_at', { ascending: false }),
-      supabase.from('categories').select('*').order('name'),
-    ])
-    setProducts(prods || [])
-    setCategories(cats || [])
-    setLoading(false)
-  }
+  const [
+    { data: prods },
+    { data: cats },
+    { data: subs },
+    { data: verts },
+  ] = await Promise.all([
+    supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false }),
+
+    supabase
+      .from('categories')
+      .select('*')
+      .order('name'),
+
+    supabase
+      .from('sub_categories')
+      .select('*')
+      .order('name'),
+
+    supabase
+      .from('verticals')
+      .select('*')
+      .order('name'),
+  ])
+
+  setProducts(prods || [])
+  setCategories(cats || [])
+  setSubCategories(subs || [])
+  setVerticals(verts || [])
+  setLoading(false)
+}
 
   const filtered = products
-    .filter((p) => {
-      if (selectedCategory && p.category_id !== selectedCategory) return false
-      if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false
-      return true
-    })
-    .sort((a, b) => {
-      if (sortBy === 'price-low') return a.price - b.price
-      if (sortBy === 'price-high') return b.price - a.price
-      if (sortBy === 'name') return a.name.localeCompare(b.name)
-      return 0
-    })
+  .filter((p) => {
+    if (selectedCategory && p.category_id !== selectedCategory) {
+      return false
+    }
+
+    if (
+      selectedSubCategory &&
+      p.sub_category_id !== selectedSubCategory
+    ) {
+      return false
+    }
+
+    if (selectedVertical && p.vertical_id !== selectedVertical) {
+      return false
+    }
+
+    if (
+      searchQuery &&
+      !p.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ) {
+      return false
+    }
+
+    return true
+  })
+  .sort((a, b) => {
+    if (sortBy === 'price-low') return a.price - b.price
+    if (sortBy === 'price-high') return b.price - a.price
+    if (sortBy === 'name') return a.name.localeCompare(b.name)
+    return 0
+  })
 
   const handleCategoryChange = (catId: string) => {
-    setSelectedCategory(catId)
-    if (catId) setSearchParams({ category: catId })
-    else setSearchParams({})
+  setSelectedCategory(catId)
+  setSelectedSubCategory('')
+  setSelectedVertical('')
+
+  if (catId) {
+    setSearchParams({ category: catId })
+  } else {
+    setSearchParams({})
   }
+}
+
+const handleSubCategoryChange = (subId: string) => {
+  setSelectedSubCategory(subId)
+  setSelectedVertical('')
+
+  if (subId) {
+    setSearchParams({
+      category: selectedCategory,
+      sub_category: subId,
+    })
+  }
+}
+
+const handleVerticalChange = (verticalId: string) => {
+  setSelectedVertical(verticalId)
+
+  if (verticalId) {
+    setSearchParams({
+      category: selectedCategory,
+      sub_category: selectedSubCategory,
+      vertical: verticalId,
+    })
+  }
+}
+
+const clearHierarchySelection = () => {
+  setSelectedCategory('')
+  setSelectedSubCategory('')
+  setSelectedVertical('')
+  setSearchParams({})
+}
 
   if (loading) return <div className="min-h-[60vh] flex items-center justify-center text-gray-400">Loading...</div>
 
@@ -78,14 +164,127 @@ export function ShopPage() {
         <aside className={`${showFilters ? 'block' : 'hidden'} lg:block w-full lg:w-64 flex-shrink-0`}>
           <div className="bg-white rounded-2xl p-5 border border-gray-100 sticky top-20">
             <h3 className="font-semibold text-gray-800 mb-3">Categories</h3>
-            <div className="space-y-1">
-              <button onClick={() => handleCategoryChange('')}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${!selectedCategory ? 'bg-red-50 text-red-500 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}>All Products</button>
-              {categories.map((cat) => (
-                <button key={cat.id} onClick={() => handleCategoryChange(cat.id)}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${selectedCategory === cat.id ? 'bg-red-50 text-red-500 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}>{cat.name}</button>
-              ))}
-            </div>
+            
+<div className="space-y-1">
+
+  {/* ALL PRODUCTS */}
+  {!selectedCategory && (
+    <>
+      <button
+        onClick={clearHierarchySelection}
+        className="w-full text-left px-3 py-2 rounded-lg text-sm bg-red-50 text-red-500 font-medium"
+      >
+        All Products
+      </button>
+
+      {/* CATEGORY LEVEL */}
+      {categories.map((cat) => (
+        <button
+          key={cat.id}
+          onClick={() => handleCategoryChange(cat.id)}
+          className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
+        >
+          {cat.name}
+        </button>
+      ))}
+    </>
+  )}
+
+  {/* SUB-CATEGORY LEVEL */}
+  {selectedCategory && !selectedSubCategory && (
+    <>
+      <button
+        onClick={clearHierarchySelection}
+        className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50"
+      >
+        ← All Categories
+      </button>
+
+      <div className="px-3 py-2 font-semibold text-gray-800">
+        {categories.find((cat) => cat.id === selectedCategory)?.name}
+      </div>
+
+      {subCategories
+        .filter((sub) => sub.category_id === selectedCategory)
+        .map((sub) => (
+          <button
+            key={sub.id}
+            onClick={() => handleSubCategoryChange(sub.id)}
+            className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
+          >
+            {sub.name}
+          </button>
+        ))}
+    </>
+  )}
+
+  {/* VERTICAL LEVEL */}
+  {selectedSubCategory && !selectedVertical && (
+    <>
+      <button
+        onClick={() => {
+          setSelectedSubCategory('')
+          setSelectedVertical('')
+
+          setSearchParams({
+            category: selectedCategory,
+          })
+        }}
+        className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50"
+      >
+        ← Back to Sub Categories
+      </button>
+
+      <div className="px-3 py-2 font-semibold text-gray-800">
+        {subCategories.find(
+          (sub) => sub.id === selectedSubCategory
+        )?.name}
+      </div>
+
+      {verticals
+        .filter(
+          (vertical) =>
+            vertical.sub_category_id === selectedSubCategory
+        )
+        .map((vertical) => (
+          <button
+            key={vertical.id}
+            onClick={() => handleVerticalChange(vertical.id)}
+            className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
+          >
+            {vertical.name}
+          </button>
+        ))}
+    </>
+  )}
+
+  {/* VERTICAL SELECTED */}
+  {selectedVertical && (
+    <>
+      <button
+        onClick={() => {
+          setSelectedVertical('')
+
+          setSearchParams({
+            category: selectedCategory,
+            sub_category: selectedSubCategory,
+          })
+        }}
+        className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50"
+      >
+        ← Back to Verticals
+      </button>
+
+      <div className="px-3 py-2 font-semibold text-gray-800">
+        {verticals.find(
+          (vertical) => vertical.id === selectedVertical
+        )?.name}
+      </div>
+    </>
+  )}
+
+</div>
+
           </div>
         </aside>
         <div className="flex-1">

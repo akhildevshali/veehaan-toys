@@ -11,6 +11,20 @@ export interface Category {
   slug: string
 }
 
+export interface SubCategory {
+  id: string
+  category_id: string
+  name: string
+  slug: string
+}
+
+export interface Vertical {
+  id: string
+  sub_category_id: string
+  name: string
+  slug: string
+}
+
 export interface Product {
   id: string
   sku: string | null
@@ -26,6 +40,8 @@ export interface Product {
   additional_images: string[]
   video_url: string | null
   category_id: string | null
+  sub_category_id: string | null
+  vertical_id: string | null
   stock_quantity: number
   in_stock: boolean
   featured: boolean
