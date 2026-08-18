@@ -117,7 +117,18 @@ const handleForgotPassword = async () => {
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-5">
+        <form
+  className="p-6 space-y-5"
+  onSubmit={(e) => {
+    e.preventDefault();
+
+    if (isForgotPassword) {
+      handleForgotPassword();
+    } else {
+      handleLogin();
+    }
+  }}
+>
 
           <div>
             <label className="block text-sm font-medium mb-2">
@@ -243,7 +254,7 @@ const handleForgotPassword = async () => {
 
           {!isForgotPassword && (
   <button
-    onClick={handleLogin}
+    type="submit"
     className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition"
   >
     Login
@@ -254,6 +265,7 @@ const handleForgotPassword = async () => {
             New Customer?
 
             <button
+            type="button"
   onClick={onCreateAccount}
   className="ml-2 text-red-500 font-semibold hover:underline"
 >
@@ -261,7 +273,7 @@ const handleForgotPassword = async () => {
 </button>
           </div>
 
-        </div>
+        </form>
 
       </div>
     </div>

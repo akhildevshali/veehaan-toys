@@ -1,5 +1,8 @@
 import { Routes, Route, Link } from 'react-router-dom'
 import { Settings } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { supabase } from './lib/supabase'
+import { ADMIN_EMAILS } from './components/AdminRoute'
 import { Navbar } from './components/Navbar'
 import { Chatbot } from './components/Chatbot'
 import { HomePage } from './pages/HomePage'
@@ -14,9 +17,48 @@ import CompleteProfilePage from "./pages/CompleteProfilePage";
 import MyProfilePage from "./pages/MyProfilePage";
 import SavedAddressesPage from "./pages/SavedAddressesPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 export default function App() {
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      const email = session?.user?.email?.toLowerCase().trim()
+
+      setIsAdmin(
+        !!email && ADMIN_EMAILS.includes(email)
+      )
+    }
+
+    checkAdmin()
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setIsAdmin(false)
+        return
+      }
+
+      const email = session?.user?.email?.toLowerCase().trim()
+
+      setIsAdmin(
+        !!email && ADMIN_EMAILS.includes(email)
+      )
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [])
+
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
@@ -29,7 +71,7 @@ export default function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
-          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} /> 
 
 <Route
   path="/complete-profile"  element={    <ProtectedRoute>
@@ -100,9 +142,14 @@ export default function App() {
           </div>
           <div className="border-t border-gray-800 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-sm text-center sm:text-left">© {new Date().getFullYear()} VeehaanToys. All rights reserved.</p>
-            <Link to="/admin" className="flex items-center gap-2 text-sm text-gray-500 hover:text-orange-400 transition-colors">
-              <Settings size={16} /> Admin
-            </Link>
+            {isAdmin && (
+  <Link
+    to="/admin"
+    className="flex items-center gap-2 text-sm text-gray-500 hover:text-orange-400 transition-colors"
+  >
+    <Settings size={16} /> Admin
+  </Link>
+)}
           </div>
         </div>
       </footer>

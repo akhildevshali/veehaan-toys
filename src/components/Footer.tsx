@@ -1,10 +1,51 @@
 import { Heart, Mail, Phone, MapPin } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
+import { ADMIN_EMAILS } from './AdminRoute';
 
 interface FooterProps {
   onNavigate: (page: string) => void;
 }
 
 export function Footer({ onNavigate }: FooterProps) {
+const [isAdmin, setIsAdmin] = useState(false);
+
+useEffect(() => {
+  const checkAdmin = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const email = session?.user?.email?.toLowerCase().trim();
+
+    setIsAdmin(
+      !!email && ADMIN_EMAILS.includes(email)
+    );
+  };
+
+  checkAdmin();
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_OUT") {
+      setIsAdmin(false);
+      return;
+    }
+
+    const email = session?.user?.email?.toLowerCase().trim();
+
+    setIsAdmin(
+      !!email && ADMIN_EMAILS.includes(email)
+    );
+  });
+
+  return () => {
+    subscription.unsubscribe();
+  };
+}, []);
+
+
   return (
     <footer className="bg-gradient-to-r from-red-600 to-yellow-500 text-white mt-20">
       <div className="container mx-auto px-4 py-12">
@@ -95,12 +136,14 @@ export function Footer({ onNavigate }: FooterProps) {
           <p className="text-white/80 text-xs mt-2">
             © 2024 VeehaanToys. All rights reserved.
           </p>
-          <button
-            onClick={() => onNavigate('admin')}
-            className="text-white/60 hover:text-white text-xs mt-2 transition-colors"
-          >
-            Admin
-          </button>
+          {isAdmin && (
+  <button
+    onClick={() => onNavigate('admin')}
+    className="text-white/60 hover:text-white text-xs mt-2 transition-colors"
+  >
+    Admin
+  </button>
+)}
         </div>
       </div>
     </footer>
