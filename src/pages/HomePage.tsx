@@ -188,7 +188,7 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
                       <div className="absolute top-1/2 left-1/3 text-7xl">🪁</div>
                     </div>
                   )}
-                  {b.image_url && <div className="absolute inset-0 bg-black/30" />}
+                  {b.image_url && <div className="absolute inset-0 bg-black/10" />}
                   <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col items-center justify-center text-center">
                   </div>
                 </Link>
@@ -259,7 +259,7 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
                   }
                 >
                   {banner.image_url && (
-                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-all" />
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-all" />
                   )}
                   <div className="relative z-10 text-white text-center">
                     {banner.emoji && (
@@ -303,7 +303,7 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
     className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
   />
 
-  <div className="absolute inset-0 bg-black/35" />
+  <div className="absolute inset-0 bg-black/10" />
 
   <div className="absolute inset-x-0 bottom-0 p-5 text-white">
     <h3 className="text-xl font-bold">
