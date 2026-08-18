@@ -1348,12 +1348,7 @@ const handleDeletePromoBanner = async () => {
 const handleSaveShopCategory = async () => {
   setError('')
 
-  const title = shopCategoryForm.title.trim()
-
-  if (!title) {
-    setError('Category title is required.')
-    return
-  }
+  const title = shopCategoryForm.title.trim() || 'Shop Category'
 
   const activeCategoryCount = shopCategories.filter(
     (c) => c.is_active && c.id !== editingShopCategory?.id
@@ -2568,26 +2563,10 @@ outline-none
 </div>
 </div>
 <div className="grid grid-cols-2 gap-4">
-<div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">
-    Button Text
-  </label>
 
-  <input
-    value={shopCategoryForm.button_text}
-    onChange={(e) =>
-      setShopCategoryForm({
-        ...shopCategoryForm,
-        button_text: e.target.value,
-      })
-    }
-    className="w-full border rounded-xl px-4 py-3"
-    placeholder="e.g. Shop Now"
-  />
-</div>
 <div>
   <label className="block text-sm font-medium text-gray-700 mb-1">
-    Button Link
+  Category Link
   </label>
 
   <input
@@ -2599,7 +2578,7 @@ outline-none
       })
     }
     className="w-full border rounded-xl px-4 py-3"
-    placeholder="/shop?category=educational"
+    placeholder="/shop?category=your-category"
   />
 </div>
 </div>
@@ -3055,6 +3034,40 @@ outline-none
   style={{ display: "none" }}
   onChange={handleZipSelect}
 />
+
+{deleteShopCategoryConfirm && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="bg-white rounded-2xl max-w-sm w-full p-6 text-center">
+      <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <AlertCircle className="text-red-500" size={28} />
+      </div>
+
+      <h3 className="text-lg font-bold text-gray-800 mb-2">
+        Delete this category?
+      </h3>
+
+      <p className="text-sm text-gray-500 mb-6">
+        This action cannot be undone.
+      </p>
+
+      <div className="flex gap-3">
+        <button
+          onClick={() => setDeleteShopCategoryConfirm(null)}
+          className="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={() => handleDeleteShopCategory(deleteShopCategoryConfirm)}
+          className="flex-1 py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-colors"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">

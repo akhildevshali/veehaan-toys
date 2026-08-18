@@ -125,8 +125,8 @@ export default function App() {
             <div>
               <h4 className="font-semibold text-white mb-3">Customer Service</h4>
               <ul className="space-y-2 text-sm">
-                <li>Free Shipping over ₹999</li>
-                <li>7-Day Returns</li>
+                <li>Free Shipping over ₹499</li>
+                <li>5-Day Returns</li>
                 <li>24/7 Support</li>
                 <li>Safe & Secure</li>
               </ul>

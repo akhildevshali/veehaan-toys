@@ -305,21 +305,7 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
 
   <div className="absolute inset-0 bg-black/10" />
 
-  <div className="absolute inset-x-0 bottom-0 p-5 text-white">
-    <h3 className="text-xl font-bold">
-      {item.title}
-    </h3>
-
-    {item.subtitle && (
-      <p className="mt-1 text-sm text-white/90">
-        {item.subtitle}
-      </p>
-    )}
-
-    <span className="inline-block mt-4 px-4 py-2 rounded-full bg-white/20 backdrop-blur text-sm font-semibold transition group-hover:bg-white group-hover:text-gray-900">
-      {item.button_text || "Shop Now"}
-    </span>
-  </div>
+  
 </Link>
 ))}
 
