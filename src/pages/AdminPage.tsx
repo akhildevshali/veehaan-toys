@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import * as XLSX from 'xlsx'
-import { supabase, type Product, type Category, type ChatMessage, type Banner, slugify } from '../lib/supabase'
+import { supabase, type Product, type Category, type SubCategory, type Vertical, type ChatMessage, type Banner, slugify } from '../lib/supabase'
 import { formatPrice, formatPriceUsd } from '../lib/cart'
 import { uploadMedia, deleteMedia, isImageFile, isVideoFile } from '../lib/media'
 import { Plus, Pencil, Trash2, X, Package, FolderTree, Grid2x2, Star, Check, CircleAlert as AlertCircle, Search, Upload, Download, ChevronDown, Image as ImageIcon, Video, Loader as Loader2, MessageCircle, Tag, SquareCheck as CheckSquare, Square, GalleryVerticalEnd as GalleryVertical, ArrowUp, ArrowDown, Eye, EyeOff, Subtitles } from 'lucide-react'
@@ -19,6 +19,8 @@ interface ProductFormData {
   additional_images: string[]
   video_url: string
   category_id: string
+  sub_category_id: string
+  vertical_id: string
   stock_quantity: string
   in_stock: boolean
   featured: boolean
@@ -27,7 +29,7 @@ interface ProductFormData {
 const emptyProduct: ProductFormData = {
   sku: '', name: '', slug: '', description: '', specifications: ['', '', '', '', '', ''],
   price: '', price_usd: '', mrp: "", image_url: '', additional_images: [], video_url: '',
-  category_id: '', stock_quantity: '', in_stock: true, featured: false,
+  category_id: '', sub_category_id: '', vertical_id: '', stock_quantity: '', in_stock: true, featured: false,
 }
 
 const MAX_IMAGES = 6
@@ -70,6 +72,8 @@ const emptyShopCategory = {
 export function AdminPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [subCategories, setSubCategories] = useState<SubCategory[]>([])
+  const [verticals, setVerticals] = useState<Vertical[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<
     'products' |
@@ -191,9 +195,11 @@ const [productsPerPage, setProductsPerPage] = useState(12)
 ]);
 
   const loadData = async () => {
-    const [{ data: prods }, { data: cats }, { data: bann }, { data: promoBann }, { data: shopCats }] = await Promise.all([
+    const [{ data: prods }, { data: cats }, { data: subs }, { data: verts }, { data: bann }, { data: promoBann }, { data: shopCats }] = await Promise.all([
       supabase.from('products').select('*').order('created_at', { ascending: false }),
       supabase.from('categories').select('*').order('name'),
+      supabase.from('sub_categories').select('*').order('name'),
+      supabase.from('verticals').select('*').order('name'),
       supabase.from('banners').select('*').order('display_order', { ascending: true }), supabase
         .from('home_promo_banners')
         .select('*')
@@ -207,6 +213,8 @@ const [productsPerPage, setProductsPerPage] = useState(12)
     
     setProducts(prods || [])
     setCategories(cats || [])
+    setSubCategories(subs || [])
+    setVerticals(verts || [])
     setBanners(bann || [])
     setShopCategories(shopCats || [])
     setPromoBanners(promoBann || [])
@@ -435,6 +443,8 @@ if (imagePosition === 1) {
       additional_images: product.additional_images || [],
       video_url: product.video_url || '',
       category_id: product.category_id || '',
+      sub_category_id: product.sub_category_id || '',
+      vertical_id: product.vertical_id || '',
       stock_quantity: String(product.stock_quantity ?? 0),
       in_stock: product.in_stock,
       featured: product.featured,
@@ -621,6 +631,8 @@ if (mrp !== null && (isNaN(mrp) || mrp < 0)) {
       additional_images: formData.additional_images,
       video_url: formData.video_url || null,
       category_id: formData.category_id || null,
+      sub_category_id: formData.sub_category_id || null,
+      vertical_id: formData.vertical_id || null,
       stock_quantity: isNaN(stock) ? 0 : Math.max(0, stock),
       in_stock: formData.in_stock,
       featured: formData.featured,
@@ -2832,14 +2844,123 @@ outline-none
                 <p className="text-xs text-gray-400 mt-1">Max 50MB. MP4, WebM recommended.</p>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <select value={formData.category_id} onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none bg-white">
-                  <option value="">No category</option>
-                  {categories.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-                </select>
-              </div>
+              <div className="space-y-4">
+
+  {/* Category */}
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+      Category
+    </label>
+    <input
+      type="text"
+      list="category-options"
+      value={
+        categories.find((cat) => cat.id === formData.category_id)?.name || ''
+      }
+      onChange={(e) => {
+        const value = e.target.value.trim()
+        const cat = categories.find(
+          (c) => c.name.toLowerCase() === value.toLowerCase()
+        )
+
+        setFormData({
+          ...formData,
+          category_id: cat?.id || '',
+          sub_category_id: '',
+          vertical_id: '',
+        })
+      }}
+      placeholder="Type or select category"
+      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none bg-white"
+    />
+
+    <datalist id="category-options">
+      {categories.map((cat) => (
+        <option key={cat.id} value={cat.name} />
+      ))}
+    </datalist>
+  </div>
+
+  {/* Sub-category */}
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+      Sub-category
+    </label>
+    <input
+      type="text"
+      list="subcategory-options"
+      value={
+        subCategories.find((sub) => sub.id === formData.sub_category_id)?.name || ''
+      }
+      onChange={(e) => {
+        const value = e.target.value.trim()
+
+        const sub = subCategories.find(
+          (s) =>
+            s.category_id === formData.category_id &&
+            s.name.toLowerCase() === value.toLowerCase()
+        )
+
+        setFormData({
+          ...formData,
+          sub_category_id: sub?.id || '',
+          vertical_id: '',
+        })
+      }}
+      placeholder="Type or select sub-category"
+      disabled={!formData.category_id}
+      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none bg-white disabled:bg-gray-100"
+    />
+
+    <datalist id="subcategory-options">
+      {subCategories
+        .filter((sub) => sub.category_id === formData.category_id)
+        .map((sub) => (
+          <option key={sub.id} value={sub.name} />
+        ))}
+    </datalist>
+  </div>
+
+  {/* Vertical */}
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+      Vertical
+    </label>
+    <input
+      type="text"
+      list="vertical-options"
+      value={
+        verticals.find((v) => v.id === formData.vertical_id)?.name || ''
+      }
+      onChange={(e) => {
+        const value = e.target.value.trim()
+
+        const vertical = verticals.find(
+          (v) =>
+            v.sub_category_id === formData.sub_category_id &&
+            v.name.toLowerCase() === value.toLowerCase()
+        )
+
+        setFormData({
+          ...formData,
+          vertical_id: vertical?.id || '',
+        })
+      }}
+      placeholder="Type or select vertical"
+      disabled={!formData.sub_category_id}
+      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none bg-white disabled:bg-gray-100"
+    />
+
+    <datalist id="vertical-options">
+      {verticals
+        .filter((v) => v.sub_category_id === formData.sub_category_id)
+        .map((v) => (
+          <option key={v.id} value={v.name} />
+        ))}
+    </datalist>
+  </div>
+
+</div>
               <div className="flex flex-wrap gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={formData.in_stock} onChange={(e) => setFormData({ ...formData, in_stock: e.target.checked })}

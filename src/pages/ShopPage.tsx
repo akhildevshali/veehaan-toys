@@ -222,9 +222,8 @@ const clearHierarchySelection = () => {
         {categories.find((cat) => cat.id === selectedCategory)?.name}
       </div>
 
-      {subCategories
-        .filter((sub) => sub.category_id === selectedCategory)
-        .map((sub) => (
+      {subCategories.filter((sub) => sub.category_id === selectedCategory && activeSubCategoryIds.has(sub.id))
+                .map((sub) => (
           <button
             key={sub.id}
             onClick={() => handleSubCategoryChange(sub.id)}
@@ -259,11 +258,7 @@ const clearHierarchySelection = () => {
         )?.name}
       </div>
 
-      {verticals
-        .filter(
-          (vertical) =>
-            vertical.sub_category_id === selectedSubCategory
-        )
+      {verticals.filter((vertical) =>vertical.sub_category_id === selectedSubCategory && activeVerticalIds.has(vertical.id))
         .map((vertical) => (
           <button
             key={vertical.id}
