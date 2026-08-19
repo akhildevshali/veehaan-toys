@@ -60,6 +60,24 @@ export function ShopPage() {
   setLoading(false)
 }
 
+const activeCategoryIds = new Set(
+  products
+    .filter((p) => p.category_id)
+    .map((p) => p.category_id!)
+)
+
+const activeSubCategoryIds = new Set(
+  products
+    .filter((p) => p.sub_category_id)
+    .map((p) => p.sub_category_id!)
+)
+
+const activeVerticalIds = new Set(
+  products
+    .filter((p) => p.vertical_id)
+    .map((p) => p.vertical_id!)
+)
+
   const filtered = products
   .filter((p) => {
     if (selectedCategory && p.category_id !== selectedCategory) {
@@ -178,7 +196,7 @@ const clearHierarchySelection = () => {
       </button>
 
       {/* CATEGORY LEVEL */}
-      {categories.map((cat) => (
+      {categories.filter((cat) => activeCategoryIds.has(cat.id)).map((cat) => (
         <button
           key={cat.id}
           onClick={() => handleCategoryChange(cat.id)}
