@@ -5,6 +5,7 @@ import { formatPrice, formatPriceUsd } from '../lib/cart'
 import { uploadMedia, deleteMedia, isImageFile, isVideoFile } from '../lib/media'
 import { Plus, Pencil, Trash2, X, Package, FolderTree, Grid2x2, Star, Check, CircleAlert as AlertCircle, Search, Upload, Download, ChevronDown, Image as ImageIcon, Video, Loader as Loader2, MessageCircle, Tag, SquareCheck as CheckSquare, Square, GalleryVerticalEnd as GalleryVertical, ArrowUp, ArrowDown, Eye, EyeOff, Subtitles } from 'lucide-react'
 import JSZip from "jszip";
+import ExcelJS from 'exceljs';
 
 interface ProductFormData {
   sku: string
@@ -693,61 +694,255 @@ if (mrp !== null && (isNaN(mrp) || mrp < 0)) {
     showSuccess('Category deleted.')
   }
 
-  const downloadTemplate = () => {
-    const template = [
-      {
-        sku: 'VT-TEDDY-001',
-        name: 'Teddy Bear Plush',
-        description: 'A beautifully crafted teddy bear made from premium plush material.',
-        spec_1: 'Age: 3+ years',
-        spec_2: 'Height: 30 cm',
-        spec_3: 'Material: Non-toxic plush',
-        spec_4: 'Washable: Yes (hand wash)',
-        spec_5: 'Battery: Not required',
-        spec_6: 'Safety: BPA-free',
-        price_inr: 499,
-        mrp: 0,
-        image_url: 'https://images.pexels.com/photos/...',
-        category: 'Soft Toys',
-        sub_category: 'Plush Teddy Bears',
-        vertical: 'Small Size',
-        stock_quantity: 50,
-        in_stock: 'yes',
-        featured: 'no',
-      },
-      {
-        sku: 'VT-BLOCKS-002',
-        name: 'Wooden Building Blocks',
-        description: 'Colorful wooden building blocks for creative play.',
-        spec_1: 'Age: 2-8 years',
-        spec_2: 'Pieces: 100',
-        spec_3: 'Material: Natural wood',
-        spec_4: 'Paint: Non-toxic water-based',
-        spec_5: 'Storage: Cotton bag included',
-        spec_6: 'Safety: EN71 certified',
-        price_inr: 699,
-        price_usd: 9.99,
-        image_url: 'https://images.pexels.com/photos/...',
-        category: 'Educational',
-        sub_category: 'Building Blocks',
-        vertical: 'Wooden Blocks',
-        stock_quantity: 30,
-        in_stock: 'yes',
-        featured: 'yes',
-      },
-    ]
-    const ws = XLSX.utils.json_to_sheet(template)
-    ws['!cols'] = [
-  { wch: 18 }, { wch: 25 }, { wch: 50 },
-  { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 }, { wch: 22 },
-  { wch: 14 }, { wch: 14 }, { wch: 40 },
-  { wch: 20 }, { wch: 20 }, { wch: 20 },
-  { wch: 15 }, { wch: 10 }, { wch: 10 },
-]
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Products')
-    XLSX.writeFile(wb, 'product-upload-template.xlsx')
+const downloadTemplate = async () => {
+  const workbook = new ExcelJS.Workbook()
+
+  const worksheet = workbook.addWorksheet('Products')
+  const listsSheet = workbook.addWorksheet('Lists')
+
+  // -----------------------------
+  // Product template columns
+  // -----------------------------
+  const columns = [
+    'sku',
+    'name',
+    'description',
+    'spec_1',
+    'spec_2',
+    'spec_3',
+    'spec_4',
+    'spec_5',
+    'spec_6',
+    'price_inr',
+    'mrp',
+    'image_url',
+    'category',
+    'sub_category',
+    'vertical',
+    'stock_quantity',
+    'in_stock',
+    'featured',
+  ]
+
+  // Header row
+  worksheet.addRow(columns)
+
+  // Example row
+  worksheet.addRow([
+    'VT-TEDDY-001',
+    'Teddy Bear Plush',
+    'A beautifully crafted teddy bear made from premium plush material.',
+    'Age: 3+ years',
+    'Height: 30 cm',
+    'Material: Non-toxic plush',
+    'Washable: Yes (hand wash)',
+    'Battery: Not required',
+    'Safety: BPA-free',
+    499,
+    0,
+    'https://images.pexels.com/photos/...',
+    '',
+    '',
+    '',
+    50,
+    'yes',
+    'no',
+  ])
+
+  // -----------------------------
+  // Column widths
+  // -----------------------------
+  const widths = [
+    18, 25, 50,
+    22, 22, 22, 22, 22, 22,
+    14, 14, 40,
+    20, 25, 20,
+    20, 15, 10,
+  ]
+
+  worksheet.columns.forEach((column, index) => {
+    column.width = widths[index]
+  })
+
+  // -----------------------------
+  // Header formatting
+  // -----------------------------
+  worksheet.getRow(1).font = {
+    bold: true,
   }
+
+  worksheet.getRow(1).alignment = {
+    vertical: 'middle',
+    horizontal: 'center',
+  }
+
+  // -----------------------------
+    // --------------------------------
+  // Dependent dropdown lists
+  // Category → Sub-category → Vertical
+  // --------------------------------
+
+  // Category master list
+  listsSheet.getCell('A1').value = 'Category'
+  listsSheet.getCell('B1').value = 'SubCategoryRange'
+
+  categories.forEach((category, index) => {
+    const row = index + 2
+    const rangeName = `Cat_${index + 1}`
+
+    listsSheet.getCell(`A${row}`).value = category.name
+    listsSheet.getCell(`B${row}`).value = rangeName
+
+    const categorySubCategories = subCategories.filter(
+      (subCategory) => subCategory.category_id === category.id
+    )
+
+    if (categorySubCategories.length > 0) {
+      const columnNumber = 4 + index
+      const columnLetter = listsSheet.getColumn(columnNumber).letter
+
+      categorySubCategories.forEach((subCategory, subIndex) => {
+        listsSheet.getCell(
+          `${columnLetter}${subIndex + 2}`
+        ).value = subCategory.name
+      })
+
+      const startRow = 2
+      const endRow = categorySubCategories.length + 1
+
+      workbook.definedNames.add(
+        `'Lists'!$${columnLetter}$${startRow}:$${columnLetter}$${endRow}`,
+        rangeName
+      )
+    }
+  })
+
+  // --------------------------------
+  // Sub-category master list
+  // --------------------------------
+
+  listsSheet.getCell('A100').value = 'SubCategory'
+  listsSheet.getCell('B100').value = 'VerticalRange'
+
+  subCategories.forEach((subCategory, index) => {
+    const row = index + 101
+    const rangeName = `Sub_${index + 1}`
+
+    listsSheet.getCell(`A${row}`).value = subCategory.name
+    listsSheet.getCell(`B${row}`).value = rangeName
+
+    const subCategoryVerticals = verticals.filter(
+      (vertical) => vertical.sub_category_id === subCategory.id
+    )
+
+    if (subCategoryVerticals.length > 0) {
+      const columnNumber = 4 + categories.length + index
+      const columnLetter = listsSheet.getColumn(columnNumber).letter
+
+      subCategoryVerticals.forEach((vertical, verticalIndex) => {
+        listsSheet.getCell(
+          `${columnLetter}${verticalIndex + 2}`
+        ).value = vertical.name
+      })
+
+      const startRow = 2
+      const endRow = subCategoryVerticals.length + 1
+
+      workbook.definedNames.add(
+        `'Lists'!$${columnLetter}$${startRow}:$${columnLetter}$${endRow}`,
+        rangeName
+      )
+    }
+  })
+
+  // --------------------------------
+  // Named range for Category list
+  // --------------------------------
+
+  if (categories.length > 0) {
+    workbook.definedNames.add(
+      `'Lists'!$A$2:$A$${categories.length + 1}`,
+      'CategoryList'
+    )
+  }
+
+  // --------------------------------
+  // Category dropdown - Column M
+  // --------------------------------
+
+  for (let row = 2; row <= 1000; row++) {
+    worksheet.getCell(`M${row}`).dataValidation = {
+      type: 'list',
+      allowBlank: true,
+      formulae: ['=CategoryList'],
+    }
+  }
+
+  // --------------------------------
+  // Sub-category dropdown - Column N
+  // Depends on Category in Column M
+  // --------------------------------
+
+  for (let row = 2; row <= 1000; row++) {
+    worksheet.getCell(`N${row}`).dataValidation = {
+      type: 'list',
+      allowBlank: true,
+      formulae: [
+        `=IF($M${row}="","",INDIRECT(VLOOKUP($M${row},Lists!$A$2:$B$${categories.length + 1},2,FALSE)))`,
+      ],
+    }
+  }
+
+  // --------------------------------
+  // Vertical dropdown - Column O
+  // Depends on Sub-category in Column N
+  // --------------------------------
+
+  for (let row = 2; row <= 1000; row++) {
+    worksheet.getCell(`O${row}`).dataValidation = {
+      type: 'list',
+      allowBlank: true,
+      formulae: [
+        `=IF($N${row}="","",INDIRECT(VLOOKUP($N${row},Lists!$A$101:$B$${subCategories.length + 100},2,FALSE)))`,
+      ],
+    }
+  }
+
+  // Hide helper sheet
+  listsSheet.state = 'hidden'
+
+  // Freeze header row
+  worksheet.views = [
+    {
+      state: 'frozen',
+      ySplit: 1,
+    },
+  ]
+
+  // -----------------------------
+  // Download Excel file
+  // -----------------------------
+  const buffer = await workbook.xlsx.writeBuffer()
+
+  const blob = new Blob(
+    [buffer],
+    {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    }
+  )
+
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+
+  link.href = url
+  link.download = 'product-upload-template.xlsx'
+
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+
+  URL.revokeObjectURL(url)
+}
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -997,7 +1192,7 @@ const verticalId =
         const record = {
           sku,
           name,
-          slug: slugify(name),
+          slug: slugify(`${name}-${sku}`),
           description: desc || name,
           short_description: specs.length > 0 ? specs.slice(0, 3).join(' • ') : (desc.slice(0, 120) || name),
           specifications: specs,
