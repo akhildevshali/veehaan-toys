@@ -129,7 +129,7 @@ const [
     setLoading(false)
   }
 
-  const featured = products.filter((p) => p.featured).slice(0, 4)
+  const featured = products.filter((p) => p.featured).slice(0, 5)
   const latest = products.slice(0, 8)
 
   const perks = [
@@ -150,7 +150,7 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
   return (
     <div>
       <section
-        className="relative overflow-hidden aspect-[3/1] z-10"
+        className="relative w-[calc(100%-450px)] mx-auto overflow-hidden aspect-[3/1] z-10"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
@@ -234,7 +234,7 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
       </section>
 
          {activePromoBanners.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-20">
+        <section className="w-[calc(100%-450px)] mx-auto py-8 relative z-20">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {activePromoBanners.map((banner) => (
               <Link
@@ -243,7 +243,7 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
                 className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
               >
                 <div
-                  className="w-full aspect-[2.82/1] flex items-center justify-center p-6"
+                  className="w-full aspect-[2/1] flex items-center justify-center p-6"
                   style={
                     banner.image_url
                       ? {
@@ -289,13 +289,13 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
 <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-8">
   
 
-  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+  <div className="flex flex-wrap lg:flex-nowrap justify-center gap-4">
 
 {shopCategories.map((item) => (
   <Link
   key={item.id}
   to={item.button_link || "/shop"}
-  className="group relative h-[250px] rounded-3xl overflow-hidden border border-gray-200 hover:border-orange-300 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
+  className="group relative h-[250px] w-full lg:w-[calc((100%-64px)/5)] lg:flex-none rounded-3xl overflow-hidden border border-gray-200 hover:border-orange-300 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
 >
   <img
     src={item.image_url}
@@ -313,23 +313,23 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
 </section>
 
       {featured.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-8">
+        <section className="w-[calc(100%-450px)] mx-auto pt-5 pb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-800">Featured Toys</h2>
             <Link to="/shop" className="text-red-500 font-medium text-sm hover:underline">View All →</Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
             {featured.map((product) => <ProductCard key={product.id} product={product} />)}
           </div>
         </section>
       )}
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-8 pb-16">
+      <section className="w-[calc(100%-450px)] mx-auto pt-5 pb-8 pb-16">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-800">New Arrivals</h2>
           <Link to="/shop" className="text-red-500 font-medium text-sm hover:underline">View All →</Link>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
           {latest.map((product) => <ProductCard key={product.id} product={product} />)}
         </div>
       </section>

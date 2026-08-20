@@ -1561,8 +1561,8 @@ const handleSaveShopCategory = async () => {
     (c) => c.is_active && c.id !== editingShopCategory?.id
   ).length
 
-  if (shopCategoryForm.is_active && activeCategoryCount >= 5) {
-    setError('Maximum 5 active categories are allowed.')
+  if (shopCategoryForm.is_active && activeCategoryCount >= 6) {
+    setError('Maximum 6 active categories are allowed.')
     return
   }
 
@@ -1908,9 +1908,9 @@ const toggleShopCategoryActive = async (category: ShopCategory) => {
   if (!category.is_active) {
     const activeCount = shopCategories.filter((c) => c.is_active).length
 
-    if (activeCount >= 5) {
+    if (activeCount >= 6) {
       setError(
-        'Maximum 5 active categories are allowed. Please deactivate another category first.'
+        'Maximum 6 active categories are allowed. Please deactivate another category first.'
       )
       return
     }
