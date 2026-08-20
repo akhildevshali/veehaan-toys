@@ -109,17 +109,15 @@ const handleLogout = async () => {
           <div className="hidden md:flex items-center gap-8 mr-auto ml-20">
             <Link to="/" className={isActive('/')}>Home</Link>
             <Link to="/shop" className={isActive('/shop')}>Shop</Link>
-            <Link to="/about" className={isActive('/about')}>About Us</Link>
-            <Link to="/contact" className={isActive('/contact')}>Contact</Link>
           </div>
           <div className="flex items-center gap-4 ml-6">
           {/* Search Bar */}
-<div className="hidden lg:flex items-center bg-gray-100 rounded-full px-4 py-2 w-72">
-  <Search size={18} className="text-gray-500 mr-2" />
+<div className="hidden lg:flex items-center bg-gray-100 rounded-full px-4 py-2 w-[min(52vw,690px)] border-2 border-black focus-within:bg-white transition-all">
+  <Search size={20} className="text-gray-500 mr-2 flex-shrink-0" />
   <input
     type="text"
-    placeholder="Search toys..."
-    className="bg-transparent w-full outline-none text-sm"
+    placeholder="Search for Products, Brands and More"
+    className="bg-transparent w-full outline-none text-sm text-gray-800"
   />
 </div>
 <div
@@ -235,8 +233,6 @@ const handleLogout = async () => {
           <div className="md:hidden pb-4 flex flex-col gap-4 border-t border-gray-100 pt-4">
             <Link to="/" className={isActive('/')} onClick={() => setMenuOpen(false)}>Home</Link>
             <Link to="/shop" className={isActive('/shop')} onClick={() => setMenuOpen(false)}>Shop</Link>
-            <Link to="/about" className={isActive('/about')} onClick={() => setMenuOpen(false)}>About Us</Link>
-            <Link to="/contact" className={isActive('/contact')} onClick={() => setMenuOpen(false)}>Contact</Link>
           </div>
         )}
       </div>

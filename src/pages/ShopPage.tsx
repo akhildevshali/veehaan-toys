@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { SlidersHorizontal } from 'lucide-react'
 import { supabase, type Product, type Category, type SubCategory, type Vertical, } from '../lib/supabase'
 import { ProductCard } from '../components/ProductCard'
 
@@ -11,7 +11,6 @@ export function ShopPage() {
   const [verticals, setVerticals] = useState<Vertical[]>([])
   const [loading, setLoading] = useState(true)
   const [searchParams, setSearchParams] = useSearchParams()
-  const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '')
   const [selectedSubCategory, setSelectedSubCategory] = useState(searchParams.get('sub_category') || '')
   const [selectedVertical, setSelectedVertical] = useState(searchParams.get('vertical') || '')
@@ -95,13 +94,6 @@ const activeVerticalIds = new Set(
       return false
     }
 
-    if (
-      searchQuery &&
-      !p.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ) {
-      return false
-    }
-
     return true
   })
   .sort((a, b) => {
@@ -163,17 +155,55 @@ const clearHierarchySelection = () => {
         <p className="text-gray-500 mt-1">Browse our collection of amazing toys</p>
       </div>
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-          <input type="text" placeholder="Search toys..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none" />
-        </div>
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none bg-white">
-          <option value="newest">Newest</option>
-          <option value="price-low">Price: Low to High</option>
-          <option value="price-high">Price: High to Low</option>
-          <option value="name">Name: A to Z</option>
-        </select>
+
+<div className="flex items-center gap-6 mb-6 text-sm">
+  <span className="font-semibold text-gray-800">Sort By</span>
+
+  <button
+    onClick={() => setSortBy('popularity')}
+    className={`pb-2 ${
+      sortBy === 'popularity'
+        ? 'text-blue-600 font-semibold border-b-2 border-blue-600'
+        : 'text-gray-700 hover:text-blue-600'
+    }`}
+  >
+    Popularity
+  </button>
+
+  <button
+    onClick={() => setSortBy('price-low')}
+    className={`pb-2 ${
+      sortBy === 'price-low'
+        ? 'text-blue-600 font-semibold border-b-2 border-blue-600'
+        : 'text-gray-700 hover:text-blue-600'
+    }`}
+  >
+    Price -- Low to High
+  </button>
+
+  <button
+    onClick={() => setSortBy('price-high')}
+    className={`pb-2 ${
+      sortBy === 'price-high'
+        ? 'text-blue-600 font-semibold border-b-2 border-blue-600'
+        : 'text-gray-700 hover:text-blue-600'
+    }`}
+  >
+    Price -- High to Low
+  </button>
+
+  <button
+    onClick={() => setSortBy('newest')}
+    className={`pb-2 ${
+      sortBy === 'newest'
+        ? 'text-blue-600 font-semibold border-b-2 border-blue-600'
+        : 'text-gray-700 hover:text-blue-600'
+    }`}
+  >
+    Newest First
+  </button>
+</div>
+
         <button onClick={() => setShowFilters(!showFilters)} className="lg:hidden flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 rounded-xl text-gray-600 font-medium">
           <SlidersHorizontal size={18} /> Filters
         </button>
