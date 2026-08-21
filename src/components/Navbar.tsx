@@ -100,17 +100,16 @@ const handleLogout = async () => {
     <nav className="sticky top-0 z-50 bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center text-2xl">🧸</div>
+          <Link to="/" className="flex items-center gap-2 ml-16">
             <span className="text-xl font-bold">
               <span className="text-red-500">Veehaan</span><span className="text-orange-400">Toys</span>
             </span>
           </Link>
-          <div className="hidden md:flex items-center gap-8 mr-auto ml-20">
+          <div className="hidden md:flex items-center gap-8 ml-8">
             <Link to="/" className={isActive('/')}>Home</Link>
             <Link to="/shop" className={isActive('/shop')}>Shop</Link>
           </div>
-          <div className="flex items-center gap-4 ml-6">
+          <div className="flex items-center gap-4 ml-4 flex-1 justify-end">
           {/* Search Bar */}
 <div className="hidden lg:flex items-center bg-gray-100 rounded-full px-4 py-2 w-[min(52vw,690px)] border-2 border-black focus-within:bg-white transition-all">
   <Search size={20} className="text-gray-500 mr-2 flex-shrink-0" />

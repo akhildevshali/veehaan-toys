@@ -216,21 +216,21 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
       </section>
 
       <section className="bg-white border-b border-gray-100 relative z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {perks.map((perk, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <perk.icon className="text-orange-500" size={22} />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-800 text-sm">{perk.title}</p>
-                  <p className="text-xs text-gray-500">{perk.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="w-[calc(100%-450px)] mx-auto py-6">
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-x-20">
+    {perks.map((perk, i) => (
+      <div key={i} className="flex items-center gap-3 justify-center">
+        <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+          <perk.icon className="text-orange-500" size={22} />
         </div>
+        <div>
+          <p className="font-semibold text-gray-800 text-sm">{perk.title}</p>
+          <p className="text-xs text-gray-500">{perk.desc}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
       </section>
 
          {activePromoBanners.length > 0 && (
@@ -295,7 +295,7 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
   <Link
   key={item.id}
   to={item.button_link || "/shop"}
-  className="group relative h-[250px] w-full lg:w-[calc((100%-64px)/5)] lg:flex-none rounded-3xl overflow-hidden border border-gray-200 hover:border-orange-300 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
+  className="group relative h-[250px] w-full lg:w-[calc((100%-200px)/6)] lg:flex-none rounded-3xl overflow-hidden border border-gray-200 hover:border-orange-300 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
 >
   <img
     src={item.image_url}
