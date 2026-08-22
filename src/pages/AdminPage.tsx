@@ -41,11 +41,14 @@ interface BannerFormData {
   subtitle: string
   button_text: string
   button_link: string
+  click_action: 'link' | 'bulk_sku'
+  collection_id: string | null
   image_url: string
   background_color: string
   display_order: string
   is_active: boolean
 }
+
 interface ShopCategory {
   id: string
   title: string
@@ -57,7 +60,7 @@ interface ShopCategory {
   is_active: boolean
 }
 const emptyBanner: BannerFormData = {
-  title: '', subtitle: '', button_text: '', button_link: '',
+  title: '', subtitle: '', button_text: '', button_link: '', click_action: 'link', collection_id: null,
   image_url: '', background_color: 'linear-gradient(to right, #ef4444, #f59e0b)',
   display_order: '0', is_active: true,
 }
@@ -119,17 +122,21 @@ export function AdminPage() {
   const [bannerForm, setBannerForm] = useState<BannerFormData>(emptyBanner)
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null)
   const [showBannerForm, setShowBannerForm] = useState(false)
+  const [selectedBannerProductIds, setSelectedBannerProductIds] = useState<Set<string>>(new Set())
+  const [bannerSkuInput, setBannerSkuInput] = useState('')
   const [bannerSaving, setBannerSaving] = useState(false)
   const [bannerImageUploading, setBannerImageUploading] = useState(false)
   const [deleteBannerConfirm, setDeleteBannerConfirm] = useState<string | null>(null)
   const [promoBanners, setPromoBanners] = useState<any[]>([])
+  const [promoBannerSkuInput, setPromoBannerSkuInput] = useState('')
   const [promoBannerForm, setPromoBannerForm] = useState<any>({
     
-
   title: '',
   subtitle: '',
   button_text: '',
   button_link: '',
+  click_action: 'link',
+  collection_id: null,
   emoji: '',
   image_url: '',
   background: 'yellow',
@@ -1345,6 +1352,9 @@ for (
     display_order: String(nextOrder),
   })
 
+setSelectedBannerProductIds(new Set())
+setBannerSkuInput('')
+
   setShowBannerForm(true)
 }
 const openAddShopCategoryForm = () => {
@@ -1387,47 +1397,107 @@ const handleShopCategoryImageUpload = async (
 }
   const openAddPromoBannerForm = () => {
     setEditingPromoBanner(null)
+    setPromoBannerSkuInput('')
 
   setPromoBannerForm({
   title: '',
   subtitle: '',
   button_text: '',
   button_link: '',
+  click_action: 'link',
+  collection_id: null,
   emoji: '',
   image_url: '',
   background: 'yellow',
   is_active: true
 })
 
+
+
     setShowPromoBannerForm(true)
   }
-  const openEditBannerForm = (banner: Banner) => {
-    setEditingBanner(banner)
-    setBannerForm({
-      title: banner.title,
-      subtitle: banner.subtitle || '',
-      button_text: banner.button_text || '',
-      button_link: banner.button_link || '',
-      image_url: banner.image_url || '',
-      background_color: banner.background_color || 'linear-gradient(to right, #ef4444, #f59e0b)',
-      display_order: String(banner.display_order),
-      is_active: banner.is_active,
-    })
+
+  const openEditBannerForm = async (banner: Banner) => {
+  setEditingBanner(banner)
+  setSelectedBannerProductIds(new Set())
+  setBannerSkuInput('')
+
+  setBannerForm({
+    title: banner.title,
+    subtitle: banner.subtitle || '',
+    button_text: banner.button_text || '',
+    button_link: banner.button_link || '',
+    click_action: banner.click_action || 'link',
+    collection_id: banner.collection_id || null,
+    image_url: banner.image_url || '',
+    background_color: banner.background_color || 'linear-gradient(to right, #ef4444, #f59e0b)',
+    display_order: String(banner.display_order),
+    is_active: banner.is_active,
+  })
+
+  if (banner.click_action === 'bulk_sku' && banner.collection_id) {
+    const { data, error } = await supabase
+      .from('banner_product_collection_items')
+      .select('product_id')
+      .eq('collection_id', banner.collection_id)
+      .order('display_order')
+
+    if (error) {
+      setError(error.message)
+    } else {
+      const skuText = (data || [])
+        .map((item) => {
+          const product = products.find((p) => p.id === item.product_id)
+          return product?.sku || ''
+        })
+        .filter(Boolean)
+        .join('\n')
+
+      setBannerSkuInput(skuText)
+    }
+  }
+
     setShowBannerForm(true)
   }
-  const openEditPromoBannerForm = (banner: any) => {
+  const openEditPromoBannerForm = async (banner: any) => {
     setEditingPromoBanner(banner)
+    setPromoBannerSkuInput('')
 
 setPromoBannerForm({
   title: banner.title,
   subtitle: banner.subtitle,
   button_text: banner.button_text,
   button_link: banner.button_link,
+  click_action: banner.click_action || 'link',
+  collection_id: banner.collection_id || null,
   emoji: banner.emoji,
   image_url: banner.image_url || '',
   background: banner.background,
   is_active: banner.is_active
 })
+
+if (banner.click_action === 'bulk_sku' && banner.collection_id) {
+    const { data, error } = await supabase
+      .from('banner_product_collection_items')
+      .select('product_id')
+      .eq('collection_id', banner.collection_id)
+      .order('display_order')
+
+    if (error) {
+      setError(error.message)
+    } else {
+      const skuText = (data || [])
+        .map((item) => {
+          const product = products.find((p) => p.id === item.product_id)
+          return product?.sku || ''
+        })
+        .filter(Boolean)
+        .join('\n')
+
+      setPromoBannerSkuInput(skuText)
+    }
+  }
+
 
     setShowPromoBannerForm(true)
   }
@@ -1450,11 +1520,14 @@ setPromoBannerForm({
     setShowBannerForm(false)
     setEditingBanner(null)
     setBannerForm(emptyBanner)
+    setBannerSkuInput('')
+    setBannerForm(emptyBanner)
     setError('')
   }
   const closePromoBannerForm = () => {
     setShowPromoBannerForm(false)
     setEditingPromoBanner(null)
+    setPromoBannerSkuInput('')
 
 setPromoBannerForm({
   title: '',
@@ -1475,7 +1548,93 @@ setPromoBannerForm({
 
   setError('')
 }
-  const handleSavePromoBanner = async () => {
+  
+const resolvePromoBannerSkuProducts = () => {
+  const rawSkus = promoBannerSkuInput
+    .split(/\r?\n/)
+    .map((sku) => sku.trim())
+    .filter(Boolean)
+
+  const uniqueSkus = [...new Set(rawSkus)]
+
+  const validProducts: Product[] = []
+  const invalidSkus: string[] = []
+
+  for (const sku of uniqueSkus) {
+    const product = products.find(
+      (p) => (p.sku || '').trim().toLowerCase() === sku.toLowerCase()
+    )
+
+    if (product) {
+      validProducts.push(product)
+    } else {
+      invalidSkus.push(sku)
+    }
+  }
+
+  return {
+    uniqueSkus,
+    validProducts,
+    invalidSkus,
+  }
+}
+
+
+const savePromoBannerProductCollection = async (
+  productsToSave: Product[],
+  existingCollectionId: string | null
+) => {
+  let collectionId = existingCollectionId
+
+  if (!collectionId) {
+    const { data, error } = await supabase
+      .from('banner_product_collections')
+      .insert({
+        name: promoBannerForm.title.trim() || 'Promo Banner Collection',
+      })
+      .select('id')
+      .single()
+
+    if (error) throw error
+
+    collectionId = data.id
+  } else {
+    const { error } = await supabase
+      .from('banner_product_collections')
+      .update({
+        name: promoBannerForm.title.trim() || 'Promo Banner Collection',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', collectionId)
+
+    if (error) throw error
+
+    const { error: deleteError } = await supabase
+      .from('banner_product_collection_items')
+      .delete()
+      .eq('collection_id', collectionId)
+
+    if (deleteError) throw deleteError
+  }
+
+  if (productsToSave.length > 0) {
+    const items = productsToSave.map((product, index) => ({
+      collection_id: collectionId,
+      product_id: product.id,
+      display_order: index,
+    }))
+
+    const { error } = await supabase
+      .from('banner_product_collection_items')
+      .insert(items)
+
+    if (error) throw error
+  }
+
+  return collectionId
+}
+
+const handleSavePromoBanner = async () => {
   setError('')
 
 
@@ -1488,11 +1647,39 @@ setPromoBannerForm({
     return
   }
 
+  let resolvedPromoBannerProducts: Product[] = []
+  let savedPromoCollectionId: string | null = null
+
+  if (promoBannerForm.click_action === 'bulk_sku') {
+    const result = resolvePromoBannerSkuProducts()
+
+    if (result.uniqueSkus.length === 0) {
+      setError('Please enter at least one SKU.')
+      return
+    }
+
+    if (result.invalidSkus.length > 0) {
+      setError(
+        `SKU not found: ${result.invalidSkus.join(', ')}`
+      )
+      return
+    }
+
+    resolvedPromoBannerProducts = result.validProducts
+
+    savedPromoCollectionId = await savePromoBannerProductCollection(
+      resolvedPromoBannerProducts,
+      promoBannerForm.collection_id
+    )
+  }
+
   const payload = {
     title: '',
     subtitle: promoBannerForm.subtitle.trim(),
     button_text: promoBannerForm.button_text.trim(),
     button_link: promoBannerForm.button_link.trim(),
+    click_action: promoBannerForm.click_action,
+    collection_id: savedPromoCollectionId,
     emoji: promoBannerForm.emoji.trim(),
     image_url: promoBannerForm.image_url,
     background: promoBannerForm.background,
@@ -1671,10 +1858,126 @@ const removePromoBannerImage = async () => {
     setBannerForm((prev) => ({ ...prev, image_url: '' }))
   }
 
+const resolveBannerSkuProducts = () => {
+  const rawSkus = bannerSkuInput
+    .split(/\r?\n/)
+    .map((sku) => sku.trim())
+    .filter(Boolean)
+
+  const uniqueSkus = [...new Set(rawSkus)]
+
+  const validProducts: Product[] = []
+  const invalidSkus: string[] = []
+
+  for (const sku of uniqueSkus) {
+    const product = products.find(
+      (p) => (p.sku || '').trim().toLowerCase() === sku.toLowerCase()
+    )
+
+    if (product) {
+      validProducts.push(product)
+    } else {
+      invalidSkus.push(sku)
+    }
+  }
+
+  return {
+    uniqueSkus,
+    validProducts,
+    invalidSkus,
+  }
+}
+
+const saveBannerProductCollection = async (
+  productsToSave: Product[],
+  existingCollectionId: string | null
+) => {
+  let collectionId = existingCollectionId
+
+  if (!collectionId) {
+    const { data, error } = await supabase
+      .from('banner_product_collections')
+      .insert({
+        name: bannerForm.title.trim() || 'Banner Collection',
+      })
+      .select('id')
+      .single()
+
+    if (error) throw error
+
+    collectionId = data.id
+  } else {
+    const { error } = await supabase
+      .from('banner_product_collections')
+      .update({
+        name: bannerForm.title.trim() || 'Banner Collection',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', collectionId)
+
+    if (error) throw error
+
+    const { error: deleteError } = await supabase
+      .from('banner_product_collection_items')
+      .delete()
+      .eq('collection_id', collectionId)
+
+    if (deleteError) throw deleteError
+  }
+
+  if (productsToSave.length > 0) {
+    const items = productsToSave.map((product, index) => ({
+      collection_id: collectionId,
+      product_id: product.id,
+      display_order: index,
+    }))
+
+    const { error } = await supabase
+      .from('banner_product_collection_items')
+      .insert(items)
+
+    if (error) throw error
+  }
+
+  return collectionId
+}
+
+
+
   const handleSaveBanner = async () => {
     setError('')
     const title = bannerForm.title.trim()
     if (!title) { setError('Banner title is required.'); return }
+      let resolvedBannerProducts: Product[] = []
+
+  if (bannerForm.click_action === 'bulk_sku') {
+    const result = resolveBannerSkuProducts()
+
+
+    if (result.uniqueSkus.length === 0) {
+      setError('Please enter at least one SKU.')
+      return
+    }
+
+    if (result.invalidSkus.length > 0) {
+      setError(
+        `SKU not found: ${result.invalidSkus.join(', ')}`
+      )
+      return
+    }
+
+    resolvedBannerProducts = result.validProducts
+  }
+  let savedCollectionId = bannerForm.collection_id
+
+  if (bannerForm.click_action === 'bulk_sku') {
+    savedCollectionId = await saveBannerProductCollection(
+      resolvedBannerProducts,
+      bannerForm.collection_id
+    )
+  }
+
+  
     const activeBannerCount = banners.filter(
       (b) => b.is_active && b.id !== editingBanner?.id
     ).length
@@ -1690,6 +1993,8 @@ const removePromoBannerImage = async () => {
       subtitle: bannerForm.subtitle.trim() || null,
       button_text: bannerForm.button_text.trim() || null,
       button_link: bannerForm.button_link.trim() || null,
+      click_action: bannerForm.click_action,
+      collection_id: savedCollectionId,
       image_url: bannerForm.image_url || null,
       background_color: bannerForm.background_color.trim() || null,
       display_order: parseInt(bannerForm.display_order || '0', 10),
@@ -2667,13 +2972,100 @@ outline-none
                     <div className="space-y-4">
                     
                       <div>
-                      
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Banner Link</label>
-                          <input value={bannerForm.button_link} onChange={(e) => setBannerForm({ ...bannerForm, button_link: e.target.value })}
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none" placeholder="e.g. /shop" />
-                        </div>
-                      </div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Click Action
+  </label>
+
+  <div className="grid grid-cols-2 gap-3">
+    <button
+      type="button"
+      onClick={() =>
+        setBannerForm({
+          ...bannerForm,
+          click_action: 'link',
+        })
+      }
+      className={`p-4 rounded-xl border-2 text-left transition-all ${
+        bannerForm.click_action === 'link'
+          ? 'border-red-500 bg-red-50'
+          : 'border-gray-200 hover:border-gray-300'
+      }`}
+    >
+      <div className="font-semibold text-gray-800">🔗 Link</div>
+      <div className="text-xs text-gray-500 mt-1">
+        Open a configured URL
+      </div>
+    </button>
+
+    <button
+      type="button"
+      onClick={() =>
+        setBannerForm({
+          ...bannerForm,
+          click_action: 'bulk_sku',
+        })
+      }
+      className={`p-4 rounded-xl border-2 text-left transition-all ${
+        bannerForm.click_action === 'bulk_sku'
+          ? 'border-red-500 bg-red-50'
+          : 'border-gray-200 hover:border-gray-300'
+      }`}
+    >
+      <div className="font-semibold text-gray-800">📦 Bulk SKU</div>
+      <div className="text-xs text-gray-500 mt-1">
+        Show selected products
+      </div>
+    </button>
+  </div>
+
+  {bannerForm.click_action === 'link' && (
+    <div className="mt-4">
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        Banner Link
+      </label>
+
+      <input
+        value={bannerForm.button_link}
+        onChange={(e) =>
+          setBannerForm({
+            ...bannerForm,
+            button_link: e.target.value,
+          })
+        }
+        className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none"
+        placeholder="e.g. /shop"
+      />
+    </div>
+  )}
+
+  {bannerForm.click_action === 'bulk_sku' && (
+    <div className="mt-4 p-4 rounded-xl bg-gray-50 border border-gray-200">
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    📦 Bulk SKU
+  </label>
+
+  <p className="text-xs text-gray-500 mb-2">
+    Enter one SKU per line.
+  </p>
+
+  <textarea
+    value={bannerSkuInput}
+    onChange={(e) => setBannerSkuInput(e.target.value)}
+    rows={6}
+    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none font-mono text-sm"
+    placeholder={`SKU001
+SKU002
+SKU005
+SKU018
+SKU025`}
+  />
+
+  <p className="text-xs text-gray-500 mt-2">
+    Multiple SKUs can be entered, one per line.
+  </p>
+</div>
+  )}
+</div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Background Image (optional)</label>
@@ -2835,11 +3227,98 @@ outline-none
                   <input value={promoBannerForm.button_text} onChange={(e) => setPromoBannerForm({ ...promoBannerForm, button_text: e.target.value })}
                     className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none" placeholder="e.g. Shop Now" />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Button Link</label>
-                  <input value={promoBannerForm.button_link} onChange={(e) => setPromoBannerForm({ ...promoBannerForm, button_link: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none" placeholder="e.g. /shop" />
-                </div>
+
+            <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Click Action
+  </label>
+
+  <div className="grid grid-cols-2 gap-3">
+    <button
+      type="button"
+      onClick={() =>
+        setPromoBannerForm({
+          ...promoBannerForm,
+          click_action: 'link',
+        })
+
+
+
+      
+      }
+      className={`p-3 rounded-xl border-2 text-sm font-medium transition-colors ${
+        promoBannerForm.click_action === 'link'
+          ? 'border-red-500 bg-red-50 text-red-600'
+          : 'border-gray-200 text-gray-600'
+      }`}
+    >
+      🔗 Link
+    </button>
+
+    <button
+      type="button"
+      onClick={() =>
+        setPromoBannerForm({
+          ...promoBannerForm,
+          click_action: 'bulk_sku',
+        })
+      }
+      className={`p-3 rounded-xl border-2 text-sm font-medium transition-colors ${
+        promoBannerForm.click_action === 'bulk_sku'
+          ? 'border-red-500 bg-red-50 text-red-600'
+          : 'border-gray-200 text-gray-600'
+      }`}
+    >
+      📦 Bulk SKU
+    </button>
+  </div>
+</div>
+
+                {promoBannerForm.click_action === 'link' && (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+      Banner Link
+    </label>
+
+    <input
+      value={promoBannerForm.button_link}
+      onChange={(e) =>
+        setPromoBannerForm({
+          ...promoBannerForm,
+          button_link: e.target.value,
+        })
+      }
+      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none"
+      placeholder="e.g. /shop"
+    />
+  </div>
+)}
+
+{promoBannerForm.click_action === 'bulk_sku' && (
+  <div className="mt-4 p-4 rounded-xl bg-gray-50 border border-gray-200">
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      📦 Bulk SKU
+    </label>
+
+    <p className="text-xs text-gray-500 mb-2">
+      Enter one SKU per line.
+    </p>
+
+    <textarea
+      value={promoBannerSkuInput}
+      onChange={(e) => setPromoBannerSkuInput(e.target.value)}
+      rows={6}
+      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none font-mono text-sm"
+      placeholder={`SKU001
+SKU002
+SKU005`}
+    />
+
+    <p className="text-xs text-gray-500 mt-2">
+      Multiple SKUs can be entered, one per line.
+    </p>
+  </div>
+)}
               </div>
 
               <div>

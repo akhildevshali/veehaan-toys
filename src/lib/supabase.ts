@@ -87,6 +87,8 @@ export interface Banner {
   is_active: boolean
   created_at: string
   updated_at: string
+  click_action: 'link' | 'bulk_sku'
+  collection_id: string | null
 }
 
 export function slugify(text: string): string {

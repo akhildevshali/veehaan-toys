@@ -7,6 +7,7 @@ import { Navbar } from './components/Navbar'
 import { Chatbot } from './components/Chatbot'
 import { HomePage } from './pages/HomePage'
 import { ShopPage } from './pages/ShopPage'
+import { BannerCollectionPage } from './pages/BannerCollectionPage'
 import { ProductDetailPage } from './pages/ProductDetailPage'
 import { CartPage } from './pages/CartPage'
 import { CheckoutPage } from './pages/CheckoutPage'
@@ -66,6 +67,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/shop" element={<ShopPage />} />
+          <Route path="/banner-collection/:collectionId" element={<BannerCollectionPage />} />
           <Route path="/product/:slug" element={<ProductDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />

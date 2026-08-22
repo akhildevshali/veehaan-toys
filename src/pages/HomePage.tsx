@@ -180,7 +180,7 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
                 ? { backgroundImage: `url(${b.image_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
                 : { background: b.background_color || 'linear-gradient(to right, #ef4444, #f59e0b)' }
               return (
-                <Link key={b.id} to={b.button_link || '/shop'} className={`${slideClass} text-white transition-all`} style={bgStyle}>
+                <Link key={b.id} to={b.click_action === 'bulk_sku' && b.collection_id ? `/banner-collection/${b.collection_id}` : b.button_link || '/shop'} className={`${slideClass} text-white transition-all`} style={bgStyle}>
                   {!b.image_url && (
                     <div className="absolute inset-0 opacity-20">
                       <div className="absolute top-10 left-10 text-9xl">🧸</div>
@@ -239,7 +239,7 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
             {activePromoBanners.map((banner) => (
               <Link
                 key={banner.id}
-                to={banner.button_link || "/shop"}
+                to={banner.click_action === 'bulk_sku' && banner.collection_id ? `/banner-collection/${banner.collection_id}` : banner.button_link || "/shop"}
                 className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
               >
                 <div
