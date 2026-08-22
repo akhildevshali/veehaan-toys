@@ -2388,7 +2388,7 @@ const toggleShopCategoryActive = async (category: ShopCategory) => {
         </div>
       )}
 
-{filteredProducts.length > 0 && (
+{tab === 'products' && filteredProducts.length > 0 && (
   <div className="mt-6 flex flex-col md:flex-row items-center justify-between gap-4">
 
     {/* Left */}
