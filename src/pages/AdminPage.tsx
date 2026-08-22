@@ -3095,22 +3095,7 @@ SKU025`}
                         <div className="mt-2 h-12 rounded-lg" style={{ background: bannerForm.background_color || '#ef4444' }} />
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
-                          <input type="number" value={bannerForm.display_order} onChange={(e) => setBannerForm({ ...bannerForm, display_order: e.target.value })}
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none" placeholder="0" />
-                          <p className="text-xs text-gray-400 mt-1">Lower numbers appear first.</p>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2 mt-3">Active</label>
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" checked={bannerForm.is_active} onChange={(e) => setBannerForm({ ...bannerForm, is_active: e.target.checked })}
-                              className="w-5 h-5 accent-red-500" />
-                            <span className="text-sm text-gray-700">Show this banner on the homepage</span>
-                          </label>
-                        </div>
-                      </div>
+
 
                       <div className="flex gap-3 pt-2">
                         <button onClick={closeBannerForm} className="flex-1 py-3.5 bg-gray-100 text-gray-600 rounded-xl font-semibold hover:bg-gray-200 transition-colors">Cancel</button>
@@ -3222,11 +3207,6 @@ SKU025`}
             <div className="space-y-4">
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Button Text</label>
-                  <input value={promoBannerForm.button_text} onChange={(e) => setPromoBannerForm({ ...promoBannerForm, button_text: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none" placeholder="e.g. Shop Now" />
-                </div>
 
             <div>
   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -3349,22 +3329,6 @@ SKU005`}
                 <div className="mt-2 h-12 rounded-lg" style={{ background: promoBannerForm.background_color || '#ef4444' }} />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
-                  <input type="number" value={promoBannerForm.display_order} onChange={(e) => setPromoBannerForm({ ...promoBannerForm, display_order: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none" placeholder="0" />
-                  <p className="text-xs text-gray-400 mt-1">Lower numbers appear first.</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 mt-3">Active</label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={promoBannerForm.is_active} onChange={(e) => setPromoBannerForm({ ...promoBannerForm, is_active: e.target.checked })}
-                      className="w-5 h-5 accent-red-500" />
-                    <span className="text-sm text-gray-700">Show this banner on the homepage</span>
-                  </label>
-                </div>
-              </div>
 
               <div className="flex gap-3 pt-2">
                 <button onClick={closePromoBannerForm} className="flex-1 py-3.5 bg-gray-100 text-gray-600 rounded-xl font-semibold hover:bg-gray-200 transition-colors">Cancel</button>
