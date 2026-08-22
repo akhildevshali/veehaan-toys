@@ -136,7 +136,6 @@ export default function App() {
             <div>
               <h4 className="font-semibold text-white mb-3">Contact Us</h4>
               <ul className="space-y-2 text-sm">
-                <li>+91 99004 85693</li>
                 <li>soyal@veehaandigitech.com</li>
                 <li>Bengaluru, India</li>
               </ul>

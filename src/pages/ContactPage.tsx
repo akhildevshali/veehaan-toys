@@ -3,24 +3,68 @@ import { Mail, Phone, MapPin, Clock, Send, Check } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 export function ContactPage() {
-  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' })
   const [sent, setSent] = useState(false)
   const [sending, setSending] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) return
-    setSending(true)
-    try {
-      await supabase.from('reviews').insert({ customer_name: form.name, rating: 5, review_text: `${form.subject}: ${form.message}`, featured: false })
-      setSent(true)
-      setForm({ name: '', email: '', subject: '', message: '' })
-    } catch { setSent(true) }
-    setSending(false)
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+
+  if (
+    !form.name.trim() ||
+    !form.email.trim() ||
+    !form.phone.trim() ||
+    !form.message.trim()
+  ) {
+    return
   }
 
+  setSending(true)
+
+  try {
+    const { error: emailError } = await supabase.functions.invoke(
+      'contact-email',
+      {
+        body: {
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          subject: form.subject,
+          message: form.message,
+        },
+      }
+    )
+
+    if (emailError) {
+      throw emailError
+    }
+
+    await supabase.from('reviews').insert({
+      customer_name: form.name,
+      rating: 5,
+      review_text: `${form.subject}: ${form.message}`,
+      featured: false,
+    })
+
+    setSent(true)
+
+    setForm({
+      name: '',
+      email: '',
+      phone: '',
+      subject: '',
+      message: '',
+    })
+  } catch (error) {
+    console.error('Contact form error:', error)
+    alert('Unable to send your message. Please try again.')
+  } finally {
+    setSending(false)
+  }
+}
+
   const contactInfo = [
-    { icon: Phone, title: 'Phone', value: '+91 99004 85693' },
+
     { icon: Mail, title: 'Email', value: 'soyal@veehaandigitech.com' },
     { icon: MapPin, title: 'Address', value: ' Bangaluru, India' },
     { icon: Clock, title: 'Hours', value: 'Mon - Sat: 9am - 8pm' },
@@ -66,6 +110,7 @@ export function ContactPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <input required placeholder="Your Name *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none" />
                   <input required type="email" placeholder="Email *" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none" />
+                  <input required type="tel" placeholder="Phone *" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none" />
                 </div>
                 <input placeholder="Subject" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none" />
                 <textarea required placeholder="Your Message *" rows={5} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-red-400 focus:outline-none resize-none" />

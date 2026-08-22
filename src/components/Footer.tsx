@@ -118,10 +118,6 @@ useEffect(() => {
                 <span>hello@veehantoys.com</span>
               </li>
               <li className="flex items-center space-x-2 text-white/90 text-sm">
-                <Phone size={16} />
-                <span>+91 99004 85693</span>
-              </li>
-              <li className="flex items-center space-x-2 text-white/90 text-sm">
                 <MapPin size={16} />
                 <span>Bengaluru, India</span>
               </li>
