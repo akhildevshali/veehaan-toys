@@ -286,7 +286,7 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
         </section>
       )}
 
-<section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-8">
+<section className="w-[calc(100%-450px)] mx-auto pt-5 pb-8">
   
 
   <div className="flex flex-wrap lg:flex-nowrap justify-center gap-4">
@@ -295,7 +295,7 @@ const activePromoBanners = promoBanners.filter((b) => b.is_active)
   <Link
   key={item.id}
   to={item.button_link || "/shop"}
-  className="group relative h-[250px] w-full lg:w-[calc((100%-200px)/6)] lg:flex-none rounded-3xl overflow-hidden border border-gray-200 hover:border-orange-300 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
+  className="group relative h-[250px] w-full lg:w-[calc((100%-80px)/6)] lg:flex-none rounded-3xl overflow-hidden border border-gray-200 hover:border-orange-300 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
 >
   <img
     src={item.image_url}
