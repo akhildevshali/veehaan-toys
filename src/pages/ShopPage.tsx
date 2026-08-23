@@ -11,6 +11,7 @@ export function ShopPage() {
   const [verticals, setVerticals] = useState<Vertical[]>([])
   const [loading, setLoading] = useState(true)
   const [searchParams, setSearchParams] = useSearchParams()
+  const searchQuery = searchParams.get('search')?.trim().toLowerCase() || ''
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '')
   const [selectedSubCategory, setSelectedSubCategory] = useState(searchParams.get('sub_category') || '')
   const [selectedVertical, setSelectedVertical] = useState(searchParams.get('vertical') || '')
@@ -93,6 +94,14 @@ const activeVerticalIds = new Set(
     if (selectedVertical && p.vertical_id !== selectedVertical) {
       return false
     }
+
+    if (
+      searchQuery &&
+      !p.name.toLowerCase().includes(searchQuery)
+    ) {
+      return false
+    }
+
 
     return true
   })

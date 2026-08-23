@@ -13,7 +13,16 @@ export function Navbar() {
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isSignupOpen, setIsSignupOpen] = useState(false)
   const [firstName, setFirstName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+
+const handleSearch = () => {
+  const query = searchQuery.trim();
+
+  if (!query) return;
+
+  navigate(`/shop?search=${encodeURIComponent(query)}`);
+};
 
 const handleLogout = async () => {
   const { error } = await supabase.auth.signOut();
@@ -112,10 +121,26 @@ const handleLogout = async () => {
           <div className="flex items-center gap-4 ml-4 flex-1 justify-end">
           {/* Search Bar */}
 <div className="hidden lg:flex items-center bg-gray-100 rounded-full px-4 py-2 w-[min(52vw,690px)] border-2 border-black focus-within:bg-white transition-all">
-  <Search size={20} className="text-gray-500 mr-2 flex-shrink-0" />
+  <button
+    type="button"
+    onClick={handleSearch}
+    className="mr-2 flex-shrink-0" aria-label="Search"
+  >
+    <Search size={20} className="text-gray-500" />
+  </button>      
+
+
+
   <input
     type="text"
     placeholder="Search for Products, Brands and More"
+    value={searchQuery}
+    onChange={(e) => setSearchQuery(e.target.value)}
+    onKeyDown={(e) => {
+      if (e.key === "Enter") {
+        handleSearch();
+      }
+    }}
     className="bg-transparent w-full outline-none text-sm text-gray-800"
   />
 </div>
