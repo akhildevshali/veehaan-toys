@@ -149,7 +149,7 @@ const clearHierarchySelection = () => {
   if (loading) return <div className="min-h-[60vh] flex items-center justify-center text-gray-400">Loading...</div>
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-[1700px] mx-auto px-6 py-8">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Shop</h1>
         <p className="text-gray-500 mt-1">Browse our collection of amazing toys</p>
@@ -335,7 +335,7 @@ const clearHierarchySelection = () => {
           {filtered.length === 0 ? (
             <div className="text-center py-20 text-gray-400"><p className="text-lg">No products found.</p></div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {filtered.map((product) => <ProductCard key={product.id} product={product} />)}
             </div>
           )}

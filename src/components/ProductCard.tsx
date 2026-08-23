@@ -11,6 +11,9 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onCartUpdate }: ProductCardProps) {
   const [adding, setAdding] = useState(false)
+  const [isHoveringImage, setIsHoveringImage] = useState(false)
+  const [hoverImageIndex, setHoverImageIndex] = useState(0)
+  const [hoverTimer, setHoverTimer] = useState<ReturnType<typeof setInterval> | null>(null)
 
   const handleAddToCart = async () => {
     setAdding(true)
@@ -20,11 +23,50 @@ export function ProductCard({ product, onCartUpdate }: ProductCardProps) {
   }
 
   return (
-    <div className="group bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100">
+    <div className="group bg-white overflow-hidden">
       <Link to={`/product/${product.slug}`} className="block">
-        <div className="aspect-square overflow-hidden bg-gradient-to-br from-orange-50 to-red-50 relative">
+        <div className="aspect-[16/10] overflow-hidden bg-white relative" 
+        onMouseEnter={() => {
+  setIsHoveringImage(true)
+  setHoverImageIndex(0)
+
+  if (product.additional_images?.length > 0) {
+    const timer = setInterval(() => {
+      setHoverImageIndex((prev) => {
+        const nextIndex = prev + 1
+
+        if (nextIndex >= product.additional_images.length) {
+          return 0
+        }
+
+        return nextIndex
+      })
+    }, 1000)
+
+    setHoverTimer(timer)
+  }
+}}
+onMouseLeave={() => {
+  setIsHoveringImage(false)
+  setHoverImageIndex(0)
+
+  if (hoverTimer) {
+    clearInterval(hoverTimer)
+    setHoverTimer(null)
+  }
+}}  >
+
+
           {product.image_url ? (
-            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <img
+  src={
+  isHoveringImage && product.additional_images?.length > 0
+    ? product.additional_images[hoverImageIndex]
+    : product.image_url
+}
+  alt={product.name}
+  className="w-full h-full object-contain scale-110 group-hover:scale-115 transition-transform duration-500"
+/>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-7xl">🧸</div>
           )}
@@ -35,12 +77,12 @@ export function ProductCard({ product, onCartUpdate }: ProductCardProps) {
           )}
         </div>
       </Link>
-      <div className="p-4">
+      <div className="p-2.5">
         <Link to={`/product/${product.slug}`}>
-          <h3 className="font-semibold text-gray-800 text-sm line-clamp-2 min-h-[2.5rem] hover:text-red-500 transition-colors leading-snug">{product.name}</h3>
+          <h3 className="font-semibold text-gray-800 text-xs line-clamp-2 min-h-[2.25rem] hover:text-red-500 transition-colors leading-tight">{product.name}</h3>
         </Link>
         {product.specifications && product.specifications.length > 0 && (
-          <ul className="mt-2 space-y-0.5">
+          <ul className="mt-1.5 space-y-0.5">
             {product.specifications.slice(0, 3).map((spec, i) => (
               <li key={i} className="text-xs text-gray-500 flex items-center gap-1">
                 <span className="w-1 h-1 bg-orange-400 rounded-full flex-shrink-0" /> {spec}
