@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ShoppingCart, Star } from 'lucide-react'
+import { ShoppingCart } from 'lucide-react'
 import { useState } from 'react'
 import type { Product } from '../lib/supabase'
 import { formatPrice, formatPriceUsd, addToCart } from '../lib/cart'
@@ -70,11 +70,7 @@ onMouseLeave={() => {
           ) : (
             <div className="w-full h-full flex items-center justify-center text-7xl">🧸</div>
           )}
-          {product.featured && (
-            <span className="absolute top-2 left-2 bg-yellow-400 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
-              <Star size={10} fill="white" /> Featured
-            </span>
-          )}
+
         </div>
       </Link>
       <div className="p-2.5">
