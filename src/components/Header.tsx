@@ -35,8 +35,6 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
   const navItems = [
     { label: 'Home', page: 'home' },
     { label: 'Shop', page: 'catalog' },
-    { label: 'About Us', page: 'about' },
-    { label: 'Contact', page: 'contact' },
   ];
 
   return (
